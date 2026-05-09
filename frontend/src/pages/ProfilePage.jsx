@@ -5,17 +5,23 @@ import AchievementGallery from '../components/profile/AchievementGallery';
 import Card from '../components/common/Card';
 import useAuthStore from '../store/authStore';
 import { mockAchievements } from '../utils/mockData';
+import { FITNESS_GOALS, EXPERIENCE_LEVELS, EQUIPMENT_OPTIONS } from '../utils/constants';
+
+/** Map backend IDs to readable labels */
+const getLabel = (options, id) => options.find((o) => o.id === id)?.label || id || '—';
 
 const statItems = (user) => [
-  { icon: Dumbbell, label: 'Total workouts', value: user.totalWorkouts },
-  { icon: Clock, label: 'Total hours', value: user.totalHours },
-  { icon: Flame, label: 'Current streak', value: `${user.streak} days` },
-  { icon: TrendingUp, label: 'Volume lifted', value: `${(user.totalVolumeKg / 1000).toFixed(0)}t` },
+  { icon: Dumbbell, label: 'Total workouts', value: user.totalWorkouts ?? 0 },
+  { icon: Clock, label: 'Total hours', value: user.totalHours ?? 0 },
+  { icon: Flame, label: 'Current streak', value: `${user.streak ?? 0} days` },
+  { icon: TrendingUp, label: 'Volume lifted', value: `${((user.totalVolumeKg ?? 0) / 1000).toFixed(0)}t` },
 ];
 
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+
+  if (!user) return null;
 
   return (
     <div className="px-5 pt-2 pb-6 lg:p-8 lg:max-w-[800px] lg:mx-auto">
@@ -41,6 +47,20 @@ export default function ProfilePage() {
         ))}
       </div>
 
+      {/* Training info from onboarding */}
+      {user.onboarding_completed && (
+        <div className="mt-5">
+          <h2 className="text-sm font-semibold mb-3">Training profile</h2>
+          <Card className="divide-y divide-hairline">
+            <InfoRow label="Goal" value={getLabel(FITNESS_GOALS, user.goal)} />
+            <InfoRow label="Experience" value={getLabel(EXPERIENCE_LEVELS, user.experience_level)} />
+            <InfoRow label="Equipment" value={getLabel(EQUIPMENT_OPTIONS, user.workout_environment)} />
+            <InfoRow label="Schedule" value={`${user.available_days ?? '—'} days / week · ${user.session_duration_min ?? '—'} min`} />
+            <InfoRow label="Age / Height / Weight" value={`${user.age ?? '—'} yrs · ${user.height_cm ?? '—'} cm · ${user.weight_kg ?? '—'} kg`} />
+          </Card>
+        </div>
+      )}
+
       {/* Achievements */}
       <div className="mt-5">
         <div className="flex items-center justify-between mb-3">
@@ -63,6 +83,15 @@ export default function ProfilePage() {
           </Card>
         ))}
       </div>
+    </div>
+  );
+}
+
+function InfoRow({ label, value }) {
+  return (
+    <div className="px-4 py-3 flex items-center justify-between">
+      <span className="text-sm text-muted">{label}</span>
+      <span className="text-sm font-medium">{value}</span>
     </div>
   );
 }
