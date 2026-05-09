@@ -1,13 +1,55 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, Plus } from 'lucide-react';
+import { RefreshCw, Plus, Sparkles } from 'lucide-react';
 import Button from '../components/common/Button';
 import DayCard from '../components/plan/DayCard';
 import WeeklyView from '../components/plan/WeeklyView';
+import Loader from '../components/common/Loader';
 import usePlanStore from '../store/planStore';
 
 export default function PlanPage() {
   const navigate = useNavigate();
-  const { currentPlan, selectedWeek, nextWeek, prevWeek } = usePlanStore();
+  const { currentPlan, selectedWeek, nextWeek, prevWeek, isLoading, fetchPlan, generateNewPlan, regeneratePlan } = usePlanStore();
+
+  useEffect(() => {
+    fetchPlan();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <Loader />
+        <p className="text-muted text-sm">Generating your plan...</p>
+      </div>
+    );
+  }
+
+  if (!currentPlan) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 px-5">
+        <Sparkles size={48} className="text-accent" />
+        <h2 className="text-xl font-semibold">No plan yet</h2>
+        <p className="text-muted text-sm text-center">Generate your first AI-powered workout plan</p>
+        <Button
+          variant="primary"
+          size="lg"
+          onClick={() => generateNewPlan({
+            goal: 'Build Muscle',
+            level: 'Intermediate',
+            daysPerWeek: 4,
+            sessionLength: 45,
+            equipment: 'full-gym',
+            priorityMuscles: ['Chest', 'Back'],
+            injuries: 'None',
+            workoutStyles: ['strength'],
+          })}
+        >
+          <Sparkles size={16} /> Generate Plan
+        </Button>
+      </div>
+    );
+  }
+
   const completedDays = currentPlan.days.filter((d) => d.status === 'done').length;
   const workoutDays = currentPlan.days.filter((d) => d.status !== 'rest').length;
 
@@ -38,8 +80,12 @@ export default function PlanPage() {
       </div>
 
       <div className="flex gap-2.5 mt-[18px]">
-        <Button variant="secondary" size="md" className="flex-1"><RefreshCw size={16} /> Regenerate</Button>
-        <Button variant="secondary" size="md" className="flex-1" onClick={() => navigate('/quick-workout')}><Plus size={16} /> Quick workout</Button>
+        <Button variant="secondary" size="md" className="flex-1" onClick={() => regeneratePlan()} disabled={isLoading}>
+          <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} /> Regenerate
+        </Button>
+        <Button variant="secondary" size="md" className="flex-1" onClick={() => navigate('/quick-workout')}>
+          <Plus size={16} /> Quick workout
+        </Button>
       </div>
     </div>
   );

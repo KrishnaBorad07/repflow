@@ -1,20 +1,17 @@
-import { mockWeeklyPlan } from '../utils/mockData';
+import api from './api';
 
-// TODO: Replace with actual API call
-export const getWeeklyPlan = async (weekNumber) => {
-  // return api.get(`/plans/weekly/${weekNumber}`);
-  return Promise.resolve({ data: mockWeeklyPlan });
+export const getWeeklyPlan = async () => {
+  return api.get('/plans/current');
 };
 
-// TODO: Replace with actual API call
-export const regeneratePlan = async () => {
-  // return api.post('/plans/regenerate');
-  return Promise.resolve({ data: mockWeeklyPlan });
+export const generatePlan = async (userProfile) => {
+  return api.post('/plans/generate', userProfile);
 };
 
-// TODO: Replace with actual API call
-export const getDayDetail = async (dayId) => {
-  // return api.get(`/plans/days/${dayId}`);
-  const day = mockWeeklyPlan.days.find((d) => d.id === dayId);
-  return Promise.resolve({ data: day });
+export const regeneratePlan = async (tweaks = {}) => {
+  return api.post('/plans/regenerate', tweaks);
+};
+
+export const getDayDetail = async (planId, dayId) => {
+  return api.get(`/plans/${planId}/days/${dayId}`);
 };
