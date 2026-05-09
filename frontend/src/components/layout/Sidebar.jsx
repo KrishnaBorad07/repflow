@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { Home, CalendarDays, PlayCircle, Search, TrendingUp, Sparkles, Settings } from 'lucide-react';
+import RepFlowLogo from '../common/RepFlowLogo';
 import useAuthStore from '../../store/authStore';
 
 const navItems = [
@@ -16,9 +17,8 @@ export default function Sidebar() {
 
   return (
     <aside className="w-60 border-r border-hairline-2 flex flex-col p-4 h-screen sticky top-0">
-      <NavLink to="/dashboard" className="flex items-center gap-2.5 px-2.5 pb-5 pt-2">
-        <RepFlowLogo size={24} />
-        <span className="text-base font-semibold">RepFlow</span>
+      <NavLink to="/dashboard" className="flex items-center px-2.5 pb-5 pt-2">
+        <RepFlowLogo height={22} />
       </NavLink>
 
       <nav className="flex flex-col gap-1">
@@ -53,11 +53,3 @@ export default function Sidebar() {
   );
 }
 
-function RepFlowLogo({ size = 22 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <path d="M4 6 L12 3 L20 6 L20 12 C20 17 16 21 12 22 C8 21 4 17 4 12 Z" fill="#C8FF3D" />
-      <path d="M9 11l2.5 3 4-5" stroke="#0A0B0D" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    </svg>
-  );
-}

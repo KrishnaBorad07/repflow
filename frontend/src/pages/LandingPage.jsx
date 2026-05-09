@@ -2,15 +2,15 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronRight, PlayCircle, CalendarDays, Camera, TrendingUp, Sparkles } from 'lucide-react';
 import Button from '../components/common/Button';
+import RepFlowLogo from '../components/common/RepFlowLogo';
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-text font-sans">
       {/* Nav */}
       <nav className="h-[72px] px-6 lg:px-14 flex items-center justify-between border-b border-hairline-2">
-        <div className="flex items-center gap-2.5">
-          <RepFlowLogo size={24} />
-          <span className="text-[17px] font-semibold tracking-tight">RepFlow</span>
+        <div className="flex items-center">
+          <RepFlowLogo height={24} />
         </div>
         <div className="hidden md:flex gap-8 text-sm text-muted">
           <span className="hover:text-text cursor-pointer">Features</span>
@@ -106,9 +106,9 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="px-6 lg:px-14 py-10 border-t border-hairline-2 flex flex-col sm:flex-row justify-between items-center gap-4 text-[13px] text-dim max-w-[1280px] mx-auto">
-        <div className="flex items-center gap-2.5">
-          <RepFlowLogo size={20} />
-          <span className="text-muted">RepFlow · Made by Jash</span>
+        <div className="flex items-center gap-3">
+          <RepFlowLogo height={18} />
+          <span className="text-muted">· Made by Jash</span>
         </div>
         <div className="flex gap-7">
           <span className="hover:text-text cursor-pointer">About</span>
@@ -118,15 +118,6 @@ export default function LandingPage() {
         </div>
       </footer>
     </div>
-  );
-}
-
-function RepFlowLogo({ size = 22 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <path d="M4 6 L12 3 L20 6 L20 12 C20 17 16 21 12 22 C8 21 4 17 4 12 Z" fill="#C8FF3D" />
-      <path d="M9 11l2.5 3 4-5" stroke="#0A0B0D" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    </svg>
   );
 }
 
