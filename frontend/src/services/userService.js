@@ -1,19 +1,17 @@
-import { mockUser } from '../utils/mockData';
+import api from './api';
 
-// TODO: Replace with actual API call
 export const getUserProfile = async () => {
-  // return api.get('/users/me');
-  return Promise.resolve({ data: mockUser });
+  return api.get('/users/profile');
 };
 
-// TODO: Replace with actual API call
+export const saveOnboarding = async (data) => {
+  return api.post('/users/onboarding', data);
+};
+
 export const updateUserProfile = async (updates) => {
-  // return api.patch('/users/me', updates);
-  return Promise.resolve({ data: { ...mockUser, ...updates } });
+  return api.put('/users/profile', updates);
 };
 
-// TODO: Replace with actual API call
 export const updatePreferences = async (preferences) => {
-  // return api.patch('/users/me/preferences', preferences);
-  return Promise.resolve({ data: { ...mockUser.preferences, ...preferences } });
+  return api.put('/users/preferences', preferences);
 };
