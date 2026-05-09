@@ -13,6 +13,7 @@ import StyleSelector from '../components/onboarding/StyleSelector';
 import Button from '../components/common/Button';
 import Loader from '../components/common/Loader';
 import { saveOnboarding } from '../services/userService';
+import { generatePlan } from '../services/planService';
 
 const TOTAL_STEPS = 7;
 
@@ -88,10 +89,21 @@ export default function OnboardingPage() {
     } else {
       setGenerating(true);
       try {
-        await saveOnboarding(buildPayload());
-        setTimeout(() => navigate('/dashboard'), 3500);
+        const payload = buildPayload();
+        await saveOnboarding(payload);
+        await generatePlan({
+          goal: data.goal,
+          level: data.experience,
+          daysPerWeek: data.schedule.daysPerWeek,
+          sessionLength: parseInt(data.schedule.sessionLength) || 45,
+          equipment: data.equipment,
+          priorityMuscles: [],
+          injuries: data.injuries.join(', ') || 'None',
+          workoutStyles: data.styles,
+        });
+        navigate('/plan');
       } catch (err) {
-        console.error('Onboarding save failed:', err);
+        console.error('Onboarding/plan generation failed:', err);
         const detail = err.response?.data?.detail;
         if (Array.isArray(detail) && detail.length > 0) {
           setError(detail[0].msg);

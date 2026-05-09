@@ -18,7 +18,7 @@ class WorkoutPlan(Base):
     total_weeks = Column(Integer, default=4)
     week_number = Column(Integer, default=1)
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
     days = relationship("PlanDay", back_populates="plan", cascade="all, delete-orphan", lazy="noload")
 

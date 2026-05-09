@@ -197,7 +197,7 @@ export default function PlanPage() {
       </div>
 
       <div className="flex gap-2.5 mt-[18px]">
-        <Button variant="secondary" size="md" className="flex-1" onClick={() => { setShowModal(true); }} disabled={isLoading}>
+        <Button variant="secondary" size="md" className="flex-1" onClick={() => regeneratePlan()} disabled={isLoading}>
           <RefreshCw size={16} /> Regenerate
         </Button>
         <Button variant="secondary" size="md" className="flex-1" onClick={() => navigate('/quick-workout')}>

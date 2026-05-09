@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from app.core.database import get_db
+from app.core.dependencies import get_current_user
+from app.models.user import User
 from app.models.plan import WorkoutPlan, PlanDay, PlanDayExercise
 from app.schemas.plan import (
     GeneratePlanRequest,
@@ -173,21 +175,21 @@ async def get_plan_day(
 async def regenerate_plan_endpoint(
     request: RegeneratePlanRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
-    user_id = "usr_001"
     user_profile = {
-        "goal": request.goal or "Build Muscle",
-        "level": request.level or "Intermediate",
-        "daysPerWeek": request.daysPerWeek or 4,
-        "sessionLength": request.sessionLength or 45,
-        "equipment": request.equipment or "full-gym",
-        "priorityMuscles": request.priorityMuscles or ["Chest", "Back"],
-        "injuries": request.injuries or "None",
-        "workoutStyles": request.workoutStyles or ["strength"],
+        "goal": request.goal or user.goal or "Build Muscle",
+        "level": request.level or user.experience_level or "Intermediate",
+        "daysPerWeek": request.daysPerWeek or user.available_days or 4,
+        "sessionLength": request.sessionLength or user.session_duration_min or 45,
+        "equipment": request.equipment or user.workout_environment or "full-gym",
+        "priorityMuscles": request.priorityMuscles or user.priority_muscles or [],
+        "injuries": request.injuries or ", ".join(user.injuries or []) or "None",
+        "workoutStyles": request.workoutStyles or user.preferred_styles or ["strength"],
     }
 
     try:
-        plan_id = await generate_plan(db, user_profile, user_id)
+        plan_id = await generate_plan(db, user_profile, f"usr_{user.id:03d}")
         plan = await load_full_plan(db, plan_id)
         return format_plan_response(plan)
     except Exception as e:

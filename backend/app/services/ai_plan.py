@@ -82,7 +82,8 @@ OUTPUT FORMAT (strict JSON):
   ]
 }}
 
-IMPORTANT: You must return exactly 7 days (dayOfWeek 1-7, Monday=1 to Sunday=7). Training days + rest days = 7."""
+IMPORTANT: You must return exactly 7 days (dayOfWeek 1-7, Monday=1 to Sunday=7). Training days + rest days = 7.
+IMPORTANT: Each time you generate a plan, create a UNIQUE and DIFFERENT plan. Vary the exercise selection, day splits, exercise order, rep ranges, and rest periods. Avoid repeating the same plan structure. Be creative with the program name and split style (push/pull/legs, upper/lower, full body, bro split, etc.)."""
 
 
 async def get_exercise_list(db: AsyncSession) -> list[dict]:
@@ -114,7 +115,7 @@ async def generate_plan(db: AsyncSession, user_profile: dict, user_id: str) -> W
             {"role": "user", "content": user_prompt},
         ],
         response_format={"type": "json_object"},
-        temperature=0.7,
+        temperature=1.0,
     )
 
     plan_data = json.loads(response.choices[0].message.content)
