@@ -1,0 +1,120 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0A0B0D;
+  --surface: #13151A;
+  --elevated: #1B1E25;
+  --hairline: #262932;
+  --hairline-2: #1F222A;
+  --text: #F4F5F7;
+  --muted: #8B8F9A;
+  --dim: #5A5E69;
+  --accent: #C8FF3D;
+  --accent-ink: #0A0B0D;
+  --accent-soft: rgba(200, 255, 61, 0.14);
+  --accent-glow: rgba(200, 255, 61, 0.35);
+  --good: #7BD88F;
+  --warn: #E8C454;
+  --bad: #E96A6A;
+  --info: #7AA9FF;
+}
+
+.light {
+  --bg: #FAFAF7;
+  --surface: #FFFFFF;
+  --elevated: #F4F4EE;
+  --hairline: #E5E5DD;
+  --hairline-2: #ECECE3;
+  --text: #0F1115;
+  --muted: #61656E;
+  --dim: #989BA3;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter Tight', 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'ss01', 'cv11';
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--hairline);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--dim);
+}
+
+/* Utility classes */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+@layer components {
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: var(--elevated);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    border: 1px solid var(--hairline);
+  }
+
+  .chip-active {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-color: rgba(200, 255, 61, 0.25);
+  }
+
+  .kicker {
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+}
