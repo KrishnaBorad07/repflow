@@ -12,7 +12,7 @@ export default function ProgressPage() {
   const [activeTab, setActiveTab] = useState('Overview');
 
   return (
-    <div className="px-5 pt-2 pb-6 lg:p-8 lg:max-w-[900px]">
+    <div className="px-5 pt-2 pb-6 lg:p-8 lg:max-w-[900px] lg:mx-auto">
       <h1 className="text-[26px] font-semibold tracking-tight">Progress</h1>
 
       <div className="flex gap-1 mt-3.5 p-1 bg-surface border border-hairline rounded-[10px]">

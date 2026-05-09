@@ -18,7 +18,7 @@ export default function ProfilePage() {
   const { user } = useAuthStore();
 
   return (
-    <div className="px-5 pt-2 pb-6 lg:p-8 lg:max-w-[800px]">
+    <div className="px-5 pt-2 pb-6 lg:p-8 lg:max-w-[800px] lg:mx-auto">
       <div className="flex items-center justify-between mb-3.5">
         <h1 className="text-[26px] font-semibold tracking-tight">Profile</h1>
         <button onClick={() => navigate('/settings')} className="w-9 h-9 rounded-full bg-surface border border-hairline flex items-center justify-center">

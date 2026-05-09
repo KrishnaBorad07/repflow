@@ -14,7 +14,7 @@ export default function ExerciseDetailPage() {
   if (!exercise) return <div className="p-8 text-muted">Exercise not found.</div>;
 
   return (
-    <div className="px-5 pt-2 pb-6 lg:p-8 lg:max-w-[800px]">
+    <div className="px-5 pt-2 pb-6 lg:p-8 lg:max-w-[800px] lg:mx-auto">
       <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-full bg-surface border border-hairline flex items-center justify-center mb-4">
         <ChevronLeft size={18} />
       </button>

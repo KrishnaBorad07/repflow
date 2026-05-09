@@ -17,7 +17,7 @@ export default function DashboardPage() {
   const greeting = today.getHours() < 12 ? 'Good morning' : today.getHours() < 17 ? 'Good afternoon' : 'Good evening';
 
   return (
-    <div className={`${isDesktop ? 'p-8 max-w-[1100px]' : 'px-5 pt-2 pb-6'}`}>
+    <div className={`${isDesktop ? 'p-8 max-w-[1100px] mx-auto' : 'px-5 pt-2 pb-6'}`}>
       {/* Header */}
       <div className="flex justify-between items-start mb-6">
         <div>

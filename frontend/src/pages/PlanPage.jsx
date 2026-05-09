@@ -12,7 +12,7 @@ export default function PlanPage() {
   const workoutDays = currentPlan.days.filter((d) => d.status !== 'rest').length;
 
   return (
-    <div className="px-5 pt-3 pb-6 lg:p-8 lg:max-w-[800px]">
+    <div className="px-5 pt-3 pb-6 lg:p-8 lg:max-w-[900px] lg:mx-auto">
       <div className="flex justify-between items-center">
         <div>
           <div className="kicker">Week {selectedWeek} of {currentPlan.totalWeeks}</div>

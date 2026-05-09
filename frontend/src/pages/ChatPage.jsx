@@ -37,7 +37,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-84px)] lg:h-screen lg:max-w-[800px]">
+    <div className="flex flex-col h-[calc(100vh-84px)] lg:h-screen lg:max-w-[800px] lg:mx-auto">
       {/* Header */}
       <div className="px-5 pt-2 pb-3 border-b border-hairline-2">
         <div className="flex items-center gap-2.5">

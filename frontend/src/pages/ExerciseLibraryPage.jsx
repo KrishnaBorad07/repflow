@@ -17,7 +17,7 @@ export default function ExerciseLibraryPage() {
   }
 
   return (
-    <div className="px-5 pt-2 pb-6 lg:p-8 lg:max-w-[900px]">
+    <div className="px-5 pt-2 pb-6 lg:p-8 lg:max-w-[900px] lg:mx-auto">
       <h1 className="text-[26px] font-semibold tracking-tight mb-3.5">Library</h1>
       <ExerciseFilter search={search} onSearchChange={setSearch} activeMuscle={activeMuscle} onMuscleChange={setActiveMuscle} />
       <div className="mt-[18px]">

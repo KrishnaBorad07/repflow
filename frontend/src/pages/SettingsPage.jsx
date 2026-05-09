@@ -32,7 +32,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="px-5 pt-2 pb-6 lg:p-8 lg:max-w-[600px]">
+    <div className="px-5 pt-2 pb-6 lg:p-8 lg:max-w-[600px] lg:mx-auto">
       <div className="flex items-center gap-3 mb-5">
         <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-full bg-surface border border-hairline flex items-center justify-center">
           <ChevronLeft size={18} />
