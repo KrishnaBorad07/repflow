@@ -3,6 +3,8 @@ import { Bell, Plus, PlayCircle, Dumbbell, Check, Sparkles, ChevronRight } from 
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import useAuthStore from '../store/authStore';
+import usePlanStore from '../store/planStore';
+import useWorkoutStore from '../store/workoutStore';
 import { mockWeekDots, mockWorkoutHistory } from '../utils/mockData';
 import useMediaQuery from '../hooks/useMediaQuery';
 
@@ -10,6 +12,25 @@ export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
   const isDesktop = useMediaQuery('(min-width: 1024px)');
+  const { currentPlan } = usePlanStore();
+  const { beginWorkout, isStarting } = useWorkoutStore();
+
+  const todayDay = currentPlan?.days?.find((d) => d.status === 'today')
+    || currentPlan?.days?.find((d) => d.exercises?.length);
+
+  const handleStartToday = async () => {
+    if (!todayDay) return;
+    try {
+      const sessionId = await beginWorkout({
+        plan_day_id: todayDay.id,
+        name: todayDay.label,
+        exercises: todayDay.exercises,
+      });
+      navigate(`/workout/${sessionId}`);
+    } catch (err) {
+      console.error('Failed to start workout:', err);
+    }
+  };
 
   const today = new Date();
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -51,8 +72,8 @@ export default function DashboardPage() {
                 <span key={t} className="px-2.5 py-1 rounded-pill bg-accent-ink/15 text-xs font-medium">{t}</span>
               ))}
             </div>
-            <button onClick={() => navigate('/workout/today')} className={`mt-5 ${isDesktop ? 'h-12 px-[22px]' : 'w-full h-[50px]'} rounded-xl bg-accent-ink text-accent font-semibold text-[15px] flex items-center justify-center gap-2`}>
-              <PlayCircle size={18} fill="currentColor" /> Start workout
+            <button onClick={handleStartToday} disabled={isStarting || !todayDay} className={`mt-5 ${isDesktop ? 'h-12 px-[22px]' : 'w-full h-[50px]'} rounded-xl bg-accent-ink text-accent font-semibold text-[15px] flex items-center justify-center gap-2 disabled:opacity-60`}>
+              <PlayCircle size={18} fill="currentColor" /> {isStarting ? 'Starting…' : 'Start workout'}
             </button>
           </div>
         </div>

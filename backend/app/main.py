@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import auth, users
+from app.api import auth, cv, users, workouts
 
 app = FastAPI(
     title="RepFlow API",
@@ -10,7 +10,12 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -25,11 +30,12 @@ async def health_check():
 # ──── Routers ────
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(users.router, prefix="/api/users", tags=["users"])
+app.include_router(workouts.router, prefix="/api/workouts", tags=["workouts"])
+app.include_router(cv.router, prefix="/api/cv", tags=["cv"])
 
 # TODO: Uncomment as each module is built
-# from app.api import plans, workouts, exercises, progress, chat
+# from app.api import plans, exercises, progress, chat
 # app.include_router(plans.router, prefix="/api/plans", tags=["plans"])
-# app.include_router(workouts.router, prefix="/api/workouts", tags=["workouts"])
 # app.include_router(exercises.router, prefix="/api/exercises", tags=["exercises"])
 # app.include_router(progress.router, prefix="/api/progress", tags=["progress"])
 # app.include_router(chat.router, prefix="/api/chat", tags=["chat"])

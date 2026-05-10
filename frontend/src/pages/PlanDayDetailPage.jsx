@@ -4,14 +4,32 @@ import Button from '../components/common/Button';
 import ExerciseCard from '../components/workout/ExerciseCard';
 import Chip from '../components/common/Chip';
 import usePlanStore from '../store/planStore';
+import useWorkoutStore from '../store/workoutStore';
 
 export default function PlanDayDetailPage() {
   const { dayId } = useParams();
   const navigate = useNavigate();
   const { currentPlan } = usePlanStore();
+  const { beginWorkout, isStarting } = useWorkoutStore();
   const day = currentPlan.days.find((d) => d.id === dayId);
 
   if (!day) return <div className="p-8 text-muted">Day not found.</div>;
+
+  const isRestDay = day.status === 'rest' || !day.exercises?.length;
+
+  const handleStart = async () => {
+    if (isRestDay) return;
+    try {
+      const sessionId = await beginWorkout({
+        plan_day_id: day.id,
+        name: day.label,
+        exercises: day.exercises,
+      });
+      navigate(`/workout/${sessionId}`);
+    } catch (err) {
+      console.error('Failed to start workout:', err);
+    }
+  };
 
   return (
     <div className="min-h-screen pb-24 lg:max-w-[800px] lg:mx-auto">
@@ -50,11 +68,13 @@ export default function PlanDayDetailPage() {
         ))}
       </div>
 
-      <div className="fixed bottom-5 left-5 right-5 lg:static lg:px-5 lg:mt-4">
-        <Button variant="primary" size="lg" fullWidth onClick={() => navigate(`/workout/${day.id}`)}>
-          <PlayCircle size={18} fill="currentColor" /> Start workout
-        </Button>
-      </div>
+      {!isRestDay && (
+        <div className="fixed bottom-5 left-5 right-5 lg:static lg:px-5 lg:mt-4">
+          <Button variant="primary" size="lg" fullWidth onClick={handleStart} disabled={isStarting}>
+            <PlayCircle size={18} fill="currentColor" /> {isStarting ? 'Starting…' : 'Start workout'}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

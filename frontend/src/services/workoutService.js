@@ -1,25 +1,47 @@
-import { mockWorkoutHistory } from '../utils/mockData';
+import api from './api';
 
-// TODO: Replace with actual API call
-export const startWorkout = async (dayId) => {
-  // return api.post(`/workouts/start`, { dayId });
-  return Promise.resolve({ data: { sessionId: 'ws_' + Date.now() } });
+/**
+ * Begin a workout session on the backend.
+ * @param {{plan_day_id?: string, workout_name?: string}} payload
+ * @returns {Promise<WorkoutSummary>}
+ */
+export const startWorkout = async (payload = {}) => {
+  const { data } = await api.post('/workouts/start', payload);
+  return data;
 };
 
-// TODO: Replace with actual API call
+/**
+ * Append a completed set to an active session.
+ * @param {number|string} sessionId
+ * @param {object} setData — see SetLogRequest schema
+ */
 export const logSet = async (sessionId, setData) => {
-  // return api.post(`/workouts/${sessionId}/sets`, setData);
-  return Promise.resolve({ data: { success: true } });
+  const { data } = await api.post(`/workouts/${sessionId}/sets`, setData);
+  return data;
 };
 
-// TODO: Replace with actual API call
-export const endWorkout = async (sessionId) => {
-  // return api.post(`/workouts/${sessionId}/end`);
-  return Promise.resolve({ data: { duration: 46, volume: 4820, formScore: 8.3, calories: 412 } });
+/**
+ * Finalize a session — backend computes duration, volume, avg form, calories.
+ * @param {number|string} sessionId
+ * @param {{rpe?: number}} payload
+ */
+export const endWorkout = async (sessionId, payload = {}) => {
+  const { data } = await api.post(`/workouts/${sessionId}/end`, payload);
+  return data;
 };
 
-// TODO: Replace with actual API call
-export const getWorkoutHistory = async () => {
-  // return api.get('/workouts/history');
-  return Promise.resolve({ data: mockWorkoutHistory });
+/**
+ * Paginated finalized workouts, newest first.
+ */
+export const getWorkoutHistory = async (limit = 20, offset = 0) => {
+  const { data } = await api.get('/workouts/history', { params: { limit, offset } });
+  return data;
+};
+
+/**
+ * Single session detail with all sets.
+ */
+export const getSession = async (sessionId) => {
+  const { data } = await api.get(`/workouts/${sessionId}`);
+  return data;
 };
