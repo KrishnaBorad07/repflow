@@ -26,14 +26,14 @@ export default function GoogleSignInButton({ onError }) {
   };
 
   return (
-    <div className="w-full flex justify-center">
+    <div className="w-full overflow-hidden rounded-lg">
       <GoogleLogin
         onSuccess={handleSuccess}
         onError={() => onError?.('Google sign-in was cancelled or failed.')}
         theme="filled_black"
         shape="rectangular"
         size="large"
-        width="320"
+        width="340"
         text="continue_with"
       />
     </div>

@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import useAuthStore from './store/authStore';
 import AppLayout from './components/layout/AppLayout';
-import Loader from './components/common/Loader';
+import PlateSpinLoader from './components/common/PlateSpinLoader';
 
 // Public pages
 import LandingPage from './pages/LandingPage';
@@ -28,21 +28,19 @@ import SettingsPage from './pages/SettingsPage';
 function FullscreenLoader() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
-      <Loader size={80} />
+      <PlateSpinLoader size={80} />
     </div>
   );
 }
 
 function ProtectedRoute({ children }) {
-  const { isAuthenticated, isLoading } = useAuthStore();
-  if (isLoading) return <FullscreenLoader />;
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   return children;
 }
 
 function PublicRoute({ children }) {
-  const { isAuthenticated, isLoading } = useAuthStore();
-  if (isLoading) return <FullscreenLoader />;
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   if (isAuthenticated) return <Navigate to="/dashboard" replace />;
   return children;
 }
