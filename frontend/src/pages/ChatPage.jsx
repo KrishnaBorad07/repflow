@@ -3,16 +3,18 @@ import { Sparkles } from 'lucide-react';
 import ChatBubble from '../components/chat/ChatBubble';
 import ChatInput from '../components/chat/ChatInput';
 import SuggestedPrompts from '../components/chat/SuggestedPrompts';
+import WaveLoader from '../components/common/WaveLoader';
 import { mockChatMessages } from '../utils/mockData';
 
 export default function ChatPage() {
   const [messages, setMessages] = useState(mockChatMessages);
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [isThinking, setIsThinking] = useState(false);
   const scrollRef = useRef(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, isThinking]);
 
   const handleSend = (text) => {
     const userMsg = {
@@ -23,6 +25,7 @@ export default function ChatPage() {
     };
     setMessages((prev) => [...prev, userMsg]);
     setShowSuggestions(false);
+    setIsThinking(true);
 
     // Simulate AI response
     setTimeout(() => {
@@ -32,6 +35,7 @@ export default function ChatPage() {
         content: "That's a great question! Based on your recent training data, I'd recommend focusing on progressive overload while maintaining proper form. Let me analyze your workout history and get back to you with specific suggestions.",
         timestamp: new Date().toISOString(),
       };
+      setIsThinking(false);
       setMessages((prev) => [...prev, aiMsg]);
     }, 1200);
   };
@@ -56,6 +60,16 @@ export default function ChatPage() {
         {messages.map((msg) => (
           <ChatBubble key={msg.id} message={msg} />
         ))}
+        {isThinking && (
+          <div className="flex items-start gap-2.5">
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-accent to-good flex items-center justify-center shrink-0">
+              <Sparkles size={12} className="text-accent-ink" />
+            </div>
+            <div className="bg-surface border border-hairline rounded-2xl rounded-tl-sm px-4 py-3">
+              <WaveLoader size={60} />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Suggestions */}

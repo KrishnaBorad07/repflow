@@ -1,28 +1,55 @@
 """
-Shared FastAPI dependencies.
+Shared FastAPI dependencies — the auth guard lives here.
 
-get_current_user is a STUB that returns a hardcoded test user.
-Group 2 will replace this with real JWT auth later — no other code changes needed.
+`get_current_user` decodes the Bearer JWT from the Authorization header,
+loads the user row, and returns it. Any route can opt-in to auth with
+`user: User = Depends(get_current_user)`.
 """
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.database import get_db
+from app.core.security import decode_access_token
 from app.models.user import User
 
 
-async def get_current_user(db: AsyncSession = Depends(get_db)) -> User:
-    """
-    TEMPORARY: Returns user with id=1 (the seeded test user).
-    When Group 2 implements auth, this will decode a JWT token
-    and return the real authenticated user. All endpoints using
-    Depends(get_current_user) will work without any changes.
-    """
-    result = await db.execute(select(User).where(User.id == 1))
+# tokenUrl is just metadata for the OpenAPI docs ("Authorize" button).
+# We accept any Bearer token regardless of where it was minted.
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
+
+
+_credentials_exception = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="Could not validate credentials",
+    headers={"WWW-Authenticate": "Bearer"},
+)
+
+
+async def get_current_user(
+    token: str | None = Depends(oauth2_scheme),
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    """Resolve the authenticated user from the request's Bearer token."""
+    if not token:
+        raise _credentials_exception
+
+    payload = decode_access_token(token)
+    if not payload:
+        raise _credentials_exception
+
+    user_id = payload.get("sub")
+    if user_id is None:
+        raise _credentials_exception
+
+    try:
+        user_id_int = int(user_id)
+    except (TypeError, ValueError):
+        raise _credentials_exception
+
+    result = await db.execute(select(User).where(User.id == user_id_int))
     user = result.scalar_one_or_none()
-    if not user:
-        raise HTTPException(
-            status_code=500,
-            detail="No test user found. Run: python -m app.seed",
-        )
+    if user is None:
+        raise _credentials_exception
     return user

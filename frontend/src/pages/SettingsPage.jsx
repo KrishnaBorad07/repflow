@@ -23,7 +23,7 @@ const INVENTORY_LABELS = {
 
 export default function SettingsPage() {
   const navigate = useNavigate();
-  const { user, updateProfile: updateStoreProfile, fetchUser } = useAuthStore();
+  const { user, updateProfile: updateStoreProfile, refreshUser } = useAuthStore();
   const { isDark, toggleTheme } = useThemeStore();
 
   // Local editable state — seeded from user
@@ -70,7 +70,7 @@ export default function SettingsPage() {
         session_duration_min: sessionMin,
       });
       // Refresh store with latest data
-      await fetchUser();
+      await refreshUser();
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
@@ -80,9 +80,9 @@ export default function SettingsPage() {
     }
   };
 
-  const handleLogout = () => {
-    useAuthStore.getState().logout();
-    navigate('/');
+  const handleLogout = async () => {
+    await useAuthStore.getState().logout();
+    navigate('/login');
   };
 
   if (!user) return null;

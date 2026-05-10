@@ -67,6 +67,8 @@ class UserResponse(BaseModel):
     rest_day_preferences: dict = {}
     notification_settings: dict = {}
     plan_tier: str = "free"
+    email_verified: bool = False
+    auth_provider: str = "email"
     member_since: Optional[datetime] = None
     created_at: Optional[datetime] = None
 

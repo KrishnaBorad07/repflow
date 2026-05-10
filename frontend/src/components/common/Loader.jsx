@@ -1,6 +1,7 @@
 /**
- * RepFlow Loader — Animated dumbbell rep cycle (#18)
- * A dumbbell lifts up and down with pulsing rep-counter dots.
+ * RepFlow Loader — 01 · Bar Lift
+ * A barbell with plates that lifts up/down with a subtle bar flex.
+ * Use for: app splash screen, full-page route transitions.
  *
  * @param {number} size - Overall size scale (default 80)
  * @param {string} className - Additional CSS classes
@@ -21,53 +22,46 @@ export default function Loader({ size = 80, className = '', label }) {
         aria-label="Loading"
       >
         <style>{`
-          .rf-bar {
-            transform-origin: 90px 100px;
-            animation: rf-lift 2s ease-in-out infinite;
+          .rf-barlift { animation: rf-barlift 1.6s ease-in-out infinite; transform-origin: center; }
+          @keyframes rf-barlift {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(-14px); }
           }
-          .rf-dot1 {
-            animation: rf-blink 2s ease-in-out infinite;
-          }
-          .rf-dot2 {
-            animation: rf-blink 2s ease-in-out 0.7s infinite;
-          }
-          @keyframes rf-lift {
-            0%, 100% { transform: translateY(0px); }
-            50%       { transform: translateY(-22px); }
-          }
-          @keyframes rf-blink {
-            0%, 30%, 70%, 100% { opacity: 0.25; }
-            50%                 { opacity: 1; }
+          .rf-barbend { animation: rf-barbend 1.6s ease-in-out infinite; }
+          @keyframes rf-barbend {
+            0%, 100% { transform: scaleX(1); }
+            50%      { transform: scaleX(0.96); }
           }
         `}</style>
 
-        {/* Dumbbell — lifts up and down */}
-        <g className="rf-bar">
-          {/* Bar */}
-          <rect x="40" y="92" width="100" height="6" rx="3" fill="#C8FF3D" />
-          {/* Left plate */}
-          <rect x="32" y="80" width="14" height="30" rx="2" fill="#C8FF3D" />
-          {/* Right plate */}
-          <rect x="134" y="80" width="14" height="30" rx="2" fill="#C8FF3D" />
-        </g>
-
-        {/* Rep counter dots */}
-        <circle className="rf-dot1" cx="60" cy="40" r="5" fill="#C8FF3D" />
-        <circle cx="90" cy="32" r="6" fill="#C8FF3D" />
-        <circle className="rf-dot2" cx="120" cy="40" r="5" fill="#C8FF3D" />
-
-        {/* Rep label */}
+        {/* LOADING text */}
         <text
           x="90"
-          y="20"
+          y="22"
           textAnchor="middle"
           fontFamily="'JetBrains Mono', monospace"
           fontSize="10"
-          fill="#5A5E69"
+          fill="var(--dim, #5A5E69)"
           letterSpacing="2"
         >
           LOADING
         </text>
+
+        {/* Barbell — lifts up and down */}
+        <g className="rf-barlift">
+          {/* Left large plate */}
+          <rect x="32" y="80" width="14" height="30" rx="2" fill="var(--accent, #C8FF3D)" />
+          {/* Right large plate */}
+          <rect x="134" y="80" width="14" height="30" rx="2" fill="var(--accent, #C8FF3D)" />
+          {/* Left small plate */}
+          <rect x="22" y="84" width="6" height="22" rx="1.5" fill="var(--accent, #C8FF3D)" opacity="0.7" />
+          {/* Right small plate */}
+          <rect x="152" y="84" width="6" height="22" rx="1.5" fill="var(--accent, #C8FF3D)" opacity="0.7" />
+          {/* Bar (with bend) */}
+          <g className="rf-barbend">
+            <rect x="40" y="92" width="100" height="6" rx="3" fill="var(--accent, #C8FF3D)" />
+          </g>
+        </g>
       </svg>
 
       {label && (

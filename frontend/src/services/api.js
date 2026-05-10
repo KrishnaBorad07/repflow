@@ -8,6 +8,7 @@ const api = axios.create({
   timeout: 90000,
 });
 
+// Attach the JWT (if any) on every request.
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('repflow_token');
   if (token) {
@@ -16,12 +17,21 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// On 401 from a protected route, drop the token and bounce to /login.
+// We skip /auth/* endpoints because their 401s are user-facing (e.g. wrong
+// password) and the page itself shows the error inline.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('repflow_token');
-      window.location.href = '/login';
+      const reqUrl = error.config?.url || '';
+      const isAuthEndpoint = reqUrl.includes('/auth/');
+      if (!isAuthEndpoint) {
+        localStorage.removeItem('repflow_token');
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+      }
     }
     return Promise.reject(error);
   }
