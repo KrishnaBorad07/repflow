@@ -3,14 +3,23 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
+import useAuthStore from '../store/authStore';
 
 export default function ForgotPasswordPage() {
+  const forgotPassword = useAuthStore((s) => s.forgotPassword);
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSent(true);
+    setError(null);
+    setSubmitting(true);
+    const result = await forgotPassword(email);
+    setSubmitting(false);
+    if (result.ok) setSent(true);
+    else setError(result.error);
   };
 
   return (
@@ -27,13 +36,18 @@ export default function ForgotPasswordPage() {
           <div className="mt-8 p-6 card text-center">
             <div className="text-4xl mb-4">📧</div>
             <h3 className="text-lg font-semibold">Check your email</h3>
-            <p className="text-sm text-muted mt-2">We've sent a reset link to {email}</p>
+            <p className="text-sm text-muted mt-2">If an account exists for {email}, a reset link is on its way.</p>
             <Link to="/login"><Button variant="secondary" size="md" className="mt-6">Back to login</Button></Link>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-3.5">
-            <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jash@example.com" />
-            <Button type="submit" variant="primary" size="lg" fullWidth className="mt-2">Send reset link</Button>
+            <Input label="Email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jash@example.com" />
+            {error && (
+              <p className="text-[13px] text-bad" role="alert">{error}</p>
+            )}
+            <Button type="submit" variant="primary" size="lg" fullWidth className="mt-2" disabled={submitting}>
+              {submitting ? 'Sending…' : 'Send reset link'}
+            </Button>
           </form>
         )}
 

@@ -15,6 +15,7 @@ class User(Base):
     avatar_url = Column(String(500))
     auth_provider = Column(String(20), default="email")  # "email" | "google"
     is_guest = Column(Boolean, default=False)
+    email_verified = Column(Boolean, default=False, nullable=False)
 
     # ──── Onboarding Quiz (Spec Section 1.1) ────
     goal = Column(String(50))  # "fat_loss" | "muscle_gain" | "endurance" | "general_fitness" | "flexibility"
