@@ -97,8 +97,9 @@ def format_plan_response(plan: WorkoutPlan) -> WeeklyPlanResponse:
 async def generate_new_plan(
     request: GeneratePlanRequest,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
-    user_id = "usr_001"
+    user_id = f"usr_{user.id:03d}"
     user_profile = request.model_dump()
     try:
         plan_id = await generate_plan(db, user_profile, user_id)
@@ -112,8 +113,9 @@ async def generate_new_plan(
 @router.get("/current", response_model=WeeklyPlanResponse)
 async def get_current_plan(
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
-    user_id = "usr_001"
+    user_id = f"usr_{user.id:03d}"
     plan = await load_active_plan(db, user_id)
     if not plan:
         raise HTTPException(status_code=404, detail="No active plan found. Generate one first.")
@@ -125,6 +127,7 @@ async def get_plan_day(
     plan_id: str,
     day_id: str,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     result = await db.execute(
         select(PlanDay)
