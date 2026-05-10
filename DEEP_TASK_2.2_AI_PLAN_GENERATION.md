@@ -9,32 +9,83 @@
 You need Docker Desktop installed and running.
 
 ```bash
-# 1. Clone the repo (you already have this)
+# 1. Clone the repo / pull latest
 git pull origin main
 
-# 2. Start PostgreSQL via Docker
-docker compose up -d
+# 2. Start PostgreSQL via Docker (only the db service)
+docker compose up -d db
 
 # 3. Install Python dependencies
 cd backend
 pip install -r requirements.txt
 
-# 4. Run database migrations (creates the users table)
+# 4. Create the backend .env file (see Section 1a below)
+
+# 5. Run database migrations (creates users, pending_signups, etc.)
 python -m alembic upgrade head
 
-# 5. Seed a test user (so the app works without auth)
-python -m app.seed
+# 6. Install frontend dependencies
+cd ../frontend
+npm install
 
-# 6. Start the backend
-uvicorn app.main:app --reload --port 8000
+# 7. Create the frontend .env file (see Section 1b below)
+```
 
-# 7. (Optional) Start the frontend in another terminal
-cd frontend && npm install && npm run dev
+### 1a. Backend `.env` file
+
+Create `backend/.env` with exactly this content:
+
+```env
+DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5433/repflow
+JWT_SECRET=dev-secret-change-in-production
+SECRET_KEY=Sz_7kqS6wXBacyPjIQ4MSJTfNw5aVmE3GoOAzd5r4ZgpCc_N0Ok9VfVghvn_QgYoTAT7ARY021ONib3jPqU4Ng
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+GMAIL_USER=alishamath3012@gmail.com
+GMAIL_APP_PASSWORD=vhhi gfup ggir gdtx
+GOOGLE_CLIENT_ID=1011177423159-eb3fpnrrk1c4cq9i1een5valb155s1bh.apps.googleusercontent.com
+```
+
+You'll also add your Grok API key here later (see Section 4).
+
+**What these are:**
+| Key | Purpose |
+|-----|---------|
+| `DATABASE_URL` | Async PostgreSQL connection (Docker maps port 5433) |
+| `SECRET_KEY` | Signs JWT access tokens |
+| `ALGORITHM` | JWT signing algorithm |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Token lifespan |
+| `GMAIL_USER` | Gmail account for sending OTP verification emails |
+| `GMAIL_APP_PASSWORD` | Gmail App Password (not the Gmail login password) |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID for "Sign in with Google" |
+
+### 1b. Frontend `.env` file
+
+Create `frontend/.env` with:
+
+```env
+VITE_API_BASE_URL=http://localhost:8000/api
+VITE_GOOGLE_CLIENT_ID=1011177423159-eb3fpnrrk1c4cq9i1een5valb155s1bh.apps.googleusercontent.com
+```
+
+### 1c. Start the app
+
+```bash
+# Terminal 1 — Backend
+cd backend
+python -m uvicorn app.main:app --reload --port 8000
+
+# Terminal 2 — Frontend
+cd frontend
+npm run dev
 ```
 
 ### Verify it works
 - `http://localhost:8000/health` should return `{"status":"ok","service":"repflow-api"}`
-- `http://localhost:8000/api/users/profile` should return the seeded test user's data
+- Frontend at `http://localhost:5173` should show the landing page
+- Sign up with a real email → you'll receive an OTP → verify → complete onboarding
+- After onboarding, `http://localhost:8000/api/users/profile` (with Bearer token) returns the user with all onboarding fields filled
 
 ### Database connection (if you want to inspect with pgAdmin or DBeaver)
 - Host: `localhost`
@@ -43,17 +94,21 @@ cd frontend && npm install && npm run dev
 - Password: `postgres`
 - Database: `repflow`
 
-### Environment file
-`backend/.env` already exists with:
-```
-DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5433/repflow
-JWT_SECRET=dev-secret-change-in-production
-```
-You'll need to add your Grok API key here (see Section 4).
-
 ---
 
 ## 2. What Already Exists
+
+### Auth System (Fully Working)
+Auth is complete — built by Group 2. Here's what you need to know:
+
+**Signup flow:** `POST /api/auth/signup` → sends OTP email → `POST /api/auth/verify-otp` → creates user + returns JWT
+**Login:** `POST /api/auth/login` → returns JWT
+**Google OAuth:** `POST /api/auth/google` → verifies Google ID token → returns JWT
+**Token validation:** `GET /api/auth/me` → returns current user from JWT
+
+The frontend handles all of this. You just need to sign up through the UI to get a test user.
+
+**Important:** All protected endpoints use `Depends(get_current_user)` from `backend/app/core/dependencies.py`. This decodes the JWT Bearer token from the `Authorization` header and returns the `User` object. Your endpoints should do the same — see Section 3f.
 
 ### Database
 - **PostgreSQL 16** running in Docker (via `docker-compose.yml`)
@@ -68,6 +123,7 @@ The `users` table has all the onboarding data you need for plan generation:
 users table columns:
 ├── id (Integer, PK)
 ├── name, email, hashed_password, avatar_url, auth_provider, is_guest
+├── email_verified         (Boolean)
 ├── goal                 (String) → "fat_loss" | "muscle_gain" | "endurance" | "general_fitness" | "flexibility"
 ├── experience_level     (String) → "never" | "casual" | "consistent" | "advanced"
 ├── age                  (Integer)
@@ -89,20 +145,16 @@ users table columns:
 
 The User model is at `backend/app/models/user.py`.
 
-### Auth Stub
-There is **no real auth yet** (Group 2 is building it later). We use a stub:
-
-```python
-# backend/app/core/dependencies.py
-async def get_current_user(db) -> User:
-    # Returns user with id=1 (the seeded test user)
-    result = await db.execute(select(User).where(User.id == 1))
-    return result.scalar_one_or_none()
-```
-
-All your endpoints should use `Depends(get_current_user)` — when auth is added later, nothing changes.
+### Pending Signups Table
+`pending_signups` stores temporary OTP data during signup. You don't need to touch this.
 
 ### Existing API
+- `POST /api/auth/signup` — signup with OTP email
+- `POST /api/auth/verify-otp` — verify OTP, create user, return JWT
+- `POST /api/auth/resend-otp` — resend OTP
+- `POST /api/auth/login` — login, return JWT
+- `POST /api/auth/google` — Google OAuth login
+- `GET /api/auth/me` — get current user from JWT
 - `POST /api/users/onboarding` — saves quiz results (already working)
 - `GET /api/users/profile` — returns user data (already working)
 - `PUT /api/users/profile` — update name/avatar
@@ -201,10 +253,11 @@ python -m alembic upgrade head
 
 Remember to:
 1. Import your new models in `backend/app/models/__init__.py` so Alembic can see them
-2. The current `__init__.py` is:
+2. The current `__init__.py` imports:
 ```python
 from app.models.base import Base
 from app.models.user import User
+from app.models.pending_signup import PendingSignup
 ```
 Add your new imports there.
 
@@ -228,8 +281,7 @@ GROK_API_KEY=xai-your-key-here
 Add it to `backend/app/core/config.py`:
 ```python
 class Settings(BaseSettings):
-    DATABASE_URL: str = "..."
-    JWT_SECRET: str = "..."
+    # ... existing fields ...
     GROK_API_KEY: str = ""  # Add this
 ```
 
@@ -336,6 +388,20 @@ POST /api/plans/generate  — Generate a new plan (calls Grok API, saves to DB)
 GET  /api/plans/current   — Get the user's active plan with all days and exercises
 ```
 
+**Important:** All endpoints must be protected with JWT auth. Use the existing dependency:
+
+```python
+from app.core.dependencies import get_current_user
+
+@router.post("/generate")
+async def generate_plan(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    # user is the authenticated User object from the JWT token
+    ...
+```
+
 **POST /api/plans/generate flow:**
 1. Get the current user from `Depends(get_current_user)`
 2. Build the prompt from user profile data
@@ -357,7 +423,7 @@ GET  /api/plans/current   — Get the user's active plan with all days and exerc
 
 In `backend/app/main.py`, add:
 ```python
-from app.api import users, plans  # add plans
+from app.api import users, auth, plans  # add plans
 
 app.include_router(plans.router, prefix="/api/plans", tags=["plans"])
 ```
@@ -432,7 +498,7 @@ Files you need to **edit**:
 - [ ] `backend/app/models/__init__.py` — import new models
 - [ ] `backend/app/main.py` — register plans router
 - [ ] `backend/app/core/config.py` — add GROK_API_KEY setting
-- [ ] `backend/.env` — add your Grok API key
+- [ ] `backend/.env` — add your `GROK_API_KEY=xai-your-key-here`
 - [ ] `backend/requirements.txt` — add `openai>=1.30.0`
 - [ ] Run `python -m alembic revision --autogenerate -m "create plan tables"` then `python -m alembic upgrade head`
 
@@ -447,16 +513,19 @@ Files you **optionally** update (or leave for Jash):
 Once everything is built:
 
 ```bash
-# 1. Make sure the test user has onboarding data
-#    Go to http://localhost:5173/onboarding and fill it out
-#    OR check via: http://localhost:8000/api/users/profile
-#    The user should have goal, experience_level, available_days etc. filled in
+# 1. Sign up through the frontend UI
+#    Go to http://localhost:5173/signup → enter email → verify OTP → complete onboarding
+#    This creates a real user with all onboarding fields filled in
 
-# 2. Generate a plan
-curl -X POST http://localhost:8000/api/plans/generate
+# 2. Get your JWT token (copy from browser DevTools → Application → Local Storage → repflow_token)
 
-# 3. Fetch the active plan
-curl http://localhost:8000/api/plans/current
+# 3. Generate a plan (replace YOUR_TOKEN with the actual JWT)
+curl -X POST http://localhost:8000/api/plans/generate \
+  -H "Authorization: Bearer YOUR_TOKEN"
+
+# 4. Fetch the active plan
+curl http://localhost:8000/api/plans/current \
+  -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
 The generate endpoint will take a few seconds (LLM API call). The response should be a full plan with 7 days and exercises.
@@ -467,8 +536,9 @@ The generate endpoint will take a few seconds (LLM API call). The response shoul
 
 - **Async everything**: use `async def` for all route handlers and service functions
 - **Dependency injection**: `user: User = Depends(get_current_user)` and `db: AsyncSession = Depends(get_db)`
+- **Auth required**: every endpoint needs `Depends(get_current_user)` — this reads the JWT from the `Authorization: Bearer <token>` header
 - **Error handling**: wrap the Grok API call in try/except, return a clear error if it fails
 - **JSON parsing**: the LLM might return malformed JSON — add retry logic or fallback
 - **Don't hardcode the model name**: put it in config/settings so it's easy to swap
 
-Good luck! Ping Jash if you have questions about the DB setup or frontend data shapes.
+Good luck! Ping Jash if you have questions about the auth flow or frontend data shapes.
