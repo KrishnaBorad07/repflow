@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Integer, Text, JSON
-from app.core.database import Base
+from app.models.base import Base
 
 
 class Exercise(Base):

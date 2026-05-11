@@ -2,7 +2,7 @@ import uuid
 from sqlalchemy import Column, String, Integer, Boolean, DateTime, ForeignKey, Text, JSON, Float
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
-from app.core.database import Base
+from app.models.base import Base
 
 
 def gen_id():

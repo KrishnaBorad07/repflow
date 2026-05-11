@@ -1,9 +1,11 @@
+import { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Heart, ChevronDown, PlayCircle } from 'lucide-react';
 import Button from '../components/common/Button';
 import ExerciseCard from '../components/workout/ExerciseCard';
 import Chip from '../components/common/Chip';
 import usePlanStore from '../store/planStore';
+import { findExerciseByName } from '../services/exerciseService';
 
 export default function PlanDayDetailPage() {
   const { dayId } = useParams();
@@ -11,7 +13,25 @@ export default function PlanDayDetailPage() {
   const { currentPlan } = usePlanStore();
   const day = currentPlan.days.find((d) => d.id === dayId);
 
+  // Resolve each plan exercise → library exercise (for images + navigation)
+  const libraryMap = useMemo(() => {
+    if (!day?.exercises) return {};
+    const map = {};
+    for (const ex of day.exercises) {
+      const match = findExerciseByName(ex.name);
+      if (match) map[ex.id || ex.name] = match;
+    }
+    return map;
+  }, [day?.exercises]);
+
   if (!day) return <div className="p-8 text-muted">Day not found.</div>;
+
+  const handleExerciseClick = (ex) => {
+    const libraryEx = libraryMap[ex.id || ex.name];
+    if (libraryEx) {
+      navigate(`/library/${libraryEx.id}`);
+    }
+  };
 
   return (
     <div className="min-h-screen pb-24 lg:max-w-[800px] lg:mx-auto">
@@ -45,9 +65,19 @@ export default function PlanDayDetailPage() {
       </div>
 
       <div className="px-5 py-3.5 flex flex-col gap-2.5">
-        {day.exercises.map((ex, i) => (
-          <ExerciseCard key={ex.id || i} exercise={ex} index={i} />
-        ))}
+        {day.exercises.map((ex, i) => {
+          const libraryEx = libraryMap[ex.id || ex.name];
+          return (
+            <ExerciseCard
+              key={ex.id || i}
+              exercise={ex}
+              index={i}
+              image={libraryEx?.images?.[0]}
+              onClick={() => handleExerciseClick(ex)}
+              linked={!!libraryEx}
+            />
+          );
+        })}
       </div>
 
       <div className="fixed bottom-5 left-5 right-5 lg:static lg:px-5 lg:mt-4">
