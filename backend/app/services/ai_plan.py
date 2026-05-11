@@ -22,8 +22,16 @@ RULES:
 5. Include rest days to fill a 7-day week.
 6. Balance push/pull/legs across the week to avoid overtraining.
 7. Compound movements first, isolation exercises last in each session.
-8. Warm-up (5 min) and cool-down (3 min) are assumed — plan exercise time within remaining duration.
+8. Warm-up (5 min) and cool-down (3 min) are assumed — plan exercise time within the remaining duration.
 9. Suggest appropriate weights based on the user's level (beginner: conservative, intermediate: moderate, advanced: challenging).
+10. EXERCISE COUNT PER SESSION must match the session duration. Use this guide:
+    - 15-20 min session → 2-3 exercises
+    - 30 min session → 3-4 exercises
+    - 45 min session → 4-5 exercises
+    - 60 min session → 5-7 exercises
+    - 90 min session → 7-9 exercises
+    Each exercise takes roughly 8-10 min (including rest between sets). NEVER default to 3 exercises for every session.
+11. The "durationEst" field MUST match the user's requested session duration, NOT a fixed 45.
 
 Respond with ONLY valid JSON, no markdown, no explanation outside the JSON."""
 
@@ -58,7 +66,7 @@ OUTPUT FORMAT (strict JSON):
       "dayOfWeek": 1,
       "label": "string - e.g. Push Day, Pull Day, Legs, Upper, Lower, Rest",
       "muscles": "string - e.g. Chest · Shoulders · Triceps",
-      "durationEst": 45,
+      "durationEst": "number - must match user's session duration",
       "exercises": [
         {{
           "exerciseId": "ex_001",
@@ -83,7 +91,8 @@ OUTPUT FORMAT (strict JSON):
 }}
 
 IMPORTANT: You must return exactly 7 days (dayOfWeek 1-7, Monday=1 to Sunday=7). Training days + rest days = 7.
-IMPORTANT: Each time you generate a plan, create a UNIQUE and DIFFERENT plan. Vary the exercise selection, day splits, exercise order, rep ranges, and rest periods. Avoid repeating the same plan structure. Be creative with the program name and split style (push/pull/legs, upper/lower, full body, bro split, etc.)."""
+IMPORTANT: Each time you generate a plan, create a UNIQUE and DIFFERENT plan. Vary the exercise selection, day splits, exercise order, rep ranges, and rest periods. Avoid repeating the same plan structure. Be creative with the program name and split style (push/pull/legs, upper/lower, full body, bro split, etc.).
+IMPORTANT: The user's session is {user_profile.get('sessionLength', 45)} minutes. Each training day MUST have enough exercises to fill that time (roughly 1 exercise per 8-10 min of effective training time). Do NOT default to 3 exercises for every session. Set durationEst to {user_profile.get('sessionLength', 45)} for each training day."""
 
 
 async def get_exercise_list(db: AsyncSession) -> list[dict]:

@@ -32,6 +32,13 @@ class UpdateProfileRequest(BaseModel):
 
 class UpdatePreferencesRequest(BaseModel):
     """Update workout preferences — can be changed anytime from settings."""
+    goal: Optional[str] = None
+    experience_level: Optional[str] = None
+    age: Optional[int] = Field(None, ge=13, le=100)
+    height_cm: Optional[float] = Field(None, gt=0)
+    weight_kg: Optional[float] = Field(None, gt=0)
+    body_fat_pct: Optional[float] = Field(None, ge=0, le=100)
+    injuries: Optional[list[str]] = None
     equipment_inventory: Optional[list[str]] = None
     preferred_styles: Optional[list[str]] = None
     priority_muscles: Optional[list[str]] = None
