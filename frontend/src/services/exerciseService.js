@@ -69,6 +69,14 @@ function transformExercise(raw) {
     .filter(Boolean)
     .filter((m, i, arr) => arr.indexOf(m) === i && m !== muscleGroup);
 
+  // Resolve images: custom exercises may have a customImageUrl (e.g. Wikimedia GIF)
+  // or custom/ prefixed paths that don't live on the free-exercise-db CDN.
+  const images = raw.customImageUrl
+    ? [raw.customImageUrl]
+    : (raw.images || []).map((img) =>
+        img.startsWith('custom/') ? null : `${IMAGE_BASE}/${img}`
+      ).filter(Boolean);
+
   return {
     id: raw.id,
     name: raw.name,
@@ -83,7 +91,13 @@ function transformExercise(raw) {
     mechanic: raw.mechanic,
     description: (raw.instructions || []).join(' '),
     instructions: raw.instructions || [],
-    images: (raw.images || []).map((img) => `${IMAGE_BASE}/${img}`),
+    images,
+    // GIF / animation URL (Wikimedia, Pixabay, etc.)
+    gifUrl: raw.customImageUrl || null,
+    // YouTube tutorial
+    tutorialUrl: raw.tutorialUrl || null,
+    tutorialTitle: raw.tutorialTitle || null,
+    tutorialChannel: raw.tutorialChannel || null,
     // Defaults for workout context (overridden by plan data)
     sets: 3,
     reps: raw.category === 'stretching' ? '30s' : '10',
