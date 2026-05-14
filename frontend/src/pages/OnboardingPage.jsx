@@ -15,6 +15,7 @@ import SquatLoader from '../components/common/SquatLoader';
 import LinearProgress from '../components/common/LinearProgress';
 import { saveOnboarding } from '../services/userService';
 import { generatePlan } from '../services/planService';
+import useAuthStore from '../store/authStore';
 
 const TOTAL_STEPS = 7;
 
@@ -92,6 +93,7 @@ export default function OnboardingPage() {
       try {
         const payload = buildPayload();
         await saveOnboarding(payload);
+        await useAuthStore.getState().refreshUser();
         await generatePlan({
           goal: data.goal,
           level: data.experience,
