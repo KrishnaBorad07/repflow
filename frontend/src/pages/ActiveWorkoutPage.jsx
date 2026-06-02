@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Pause, Camera, CameraOff, Info, Sparkles, Volume2, VolumeX } from 'lucide-react';
+import { Pause, Play, Camera, CameraOff, Info, Sparkles, Volume2, VolumeX, Minus, Plus } from 'lucide-react';
 import Button from '../components/common/Button';
 import RestTimer from '../components/workout/RestTimer';
 import WorkoutComplete from '../components/workout/WorkoutComplete';
@@ -58,6 +58,20 @@ export default function ActiveWorkoutPage() {
     });
   };
 
+  // ──── 3-phase flow: learn → perform → rest ────
+  const [phase, setPhase] = useState('learn');
+  const [cameraPreference, setCameraPreference] = useState(() => {
+    try { return localStorage.getItem('repflow_camera_pref') !== '0'; } catch { return true; }
+  });
+
+  const toggleCameraPreference = () => {
+    setCameraPreference((v) => {
+      const next = !v;
+      try { localStorage.setItem('repflow_camera_pref', next ? '1' : '0'); } catch {}
+      return next;
+    });
+  };
+
   // Latest LLM verdict accessed by per-frame logic (avoids stale closures).
   const coachVerdictRef = useRef(null);
   const autoLoggedSetRef = useRef(null);
@@ -82,6 +96,8 @@ export default function ActiveWorkoutPage() {
 
   // Reset live state on exercise change.
   useEffect(() => {
+    setPhase('learn');
+    setCameraActive(false);
     setLiveRepCount(0);
     setLastRep(null);
     setCoachVerdict(null);
@@ -120,6 +136,7 @@ export default function ActiveWorkoutPage() {
   // Pause camera while resting + reset per-set state.
   useEffect(() => {
     if (isResting) {
+      setPhase('learn');
       if (cameraActive) setCameraActive(false);
       analyzer?.reset();
       setLiveRepCount(0);
@@ -321,15 +338,24 @@ export default function ActiveWorkoutPage() {
     );
   }
 
-  // ──── Render: exercise ────
+  // ──── Shared helpers ────
 
-  const handleManualLog = () => {
-    logSet({ reps: currentExercise?.reps, isPartial: false });
+  const startSet = useCallback(() => {
+    setPhase('perform');
+    setLiveRepCount(0);
+    setLastRep(null);
+    setCoachVerdict(null);
+    coachVerdictRef.current = null;
+    setRejectedFlash(null);
+    autoLoggedSetRef.current = null;
+    if (cameraPreference) setCameraActive(true);
+  }, [cameraPreference]);
+
+  const handleCompleteSet = () => {
+    const reps = liveRepCount > 0 ? liveRepCount : (currentExercise?.reps ?? 0);
+    logSet({ reps, isPartial: false });
   };
 
-  // The text shown in the bottom cue bubble. Stay silent when the LLM
-  // has nothing new to say — that's the whole point of letting it return
-  // null instead of nagging.
   const cueText = (() => {
     if (rejectedFlash) return rejectedFlash;
     if (coachVerdict?.suggestion) return coachVerdict.suggestion;
@@ -344,10 +370,84 @@ export default function ActiveWorkoutPage() {
     return 'good';
   })();
 
+  // ──── Render: LEARN phase ────
+
+  if (phase === 'learn') {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        {/* Top HUD */}
+        <div className="absolute top-3.5 left-4 right-4 z-20 flex justify-between items-center gap-2">
+          <div className="bg-background/70 backdrop-blur-xl border border-hairline px-3 py-1.5 rounded-pill text-[13px] font-mono font-semibold">
+            <span className="text-accent">●</span> {formatTimer(elapsedSeconds)}
+          </div>
+          <button
+            onClick={togglePause}
+            className="bg-background/70 backdrop-blur-xl border border-hairline px-3.5 py-1.5 rounded-pill text-[13px] flex items-center gap-2"
+          >
+            <Pause size={14} /> {isPaused ? 'Resume' : 'Pause'}
+          </button>
+        </div>
+
+        {/* Demo area */}
+        <div className="relative h-[55vh] min-h-[350px] shrink-0">
+          <VideoPlayer exerciseName={currentExercise?.name} className="h-full rounded-none" />
+        </div>
+
+        {/* Progress dots */}
+        <div className="flex justify-center gap-1.5 py-3">
+          {exercises.map((_, i) => (
+            <div key={i} className={`h-1.5 rounded-full ${i < currentExerciseIndex ? 'w-1.5 bg-accent' : i === currentExerciseIndex ? 'w-6 bg-accent' : 'w-1.5 bg-elevated'}`} />
+          ))}
+        </div>
+
+        {/* Exercise info */}
+        <div className="px-6 flex-1 overflow-y-auto">
+          <div className="kicker !text-accent">Exercise {currentExerciseIndex + 1} of {exercises.length}</div>
+          <h2 className="text-[22px] font-semibold tracking-tight mt-1 leading-tight">{currentExercise?.name}</h2>
+          <div className="flex gap-1.5 mt-2">
+            {currentExercise?.muscle && <Chip active>{currentExercise.muscle}</Chip>}
+            {currentExercise?.secondaryMuscles?.map((m) => <Chip key={m}>{m}</Chip>)}
+          </div>
+
+          <div className="mt-3 p-4 bg-surface border border-hairline rounded-[14px] flex justify-between items-center">
+            <div>
+              <div className="text-[11px] text-muted tracking-wider">SET {setNumber} OF {setsForCurrent}</div>
+              <div className="font-mono tabular-nums text-[22px] font-semibold mt-1">{currentExercise?.reps} reps · {currentExercise?.weight} kg</div>
+            </div>
+            <div className="text-right">
+              <div className="text-[10px] text-muted tracking-wider">LAST TIME</div>
+              <div className="font-mono text-[13px] text-dim mt-1">{setsForCurrent}×{currentExercise?.reps} @ {(currentExercise?.weight || 0) - 2.5} kg</div>
+            </div>
+          </div>
+
+          {/* Camera preference toggle */}
+          <button
+            onClick={toggleCameraPreference}
+            className="w-full flex items-center gap-3 mt-3 px-4 py-3 rounded-[14px] bg-surface border border-hairline"
+          >
+            <Camera size={16} className={cameraPreference ? 'text-accent' : 'text-muted'} />
+            <span className="text-sm flex-1 text-left">AI form tracking</span>
+            <div className={`w-10 h-[22px] rounded-full transition-colors relative ${cameraPreference ? 'bg-accent' : 'bg-elevated'}`}>
+              <div className={`w-4 h-4 rounded-full bg-white absolute top-[3px] transition-all ${cameraPreference ? 'left-[22px]' : 'left-[3px]'}`} />
+            </div>
+          </button>
+        </div>
+
+        {/* Start set */}
+        <div className="p-5 pt-3">
+          <Button variant="primary" size="lg" fullWidth onClick={startSet}>
+            <Play size={16} /> Start set
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // ──── Render: PERFORM phase ────
+
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
-      {/* Floating rep counter + cue — pinned to viewport so they stay
-          visible when the user scrolls the page below the camera. */}
+      {/* Camera-mode overlays */}
       {cameraActive && (
         <>
           <div className="fixed top-[60px] left-0 right-0 flex justify-center pointer-events-none z-30 px-3">
@@ -429,14 +529,14 @@ export default function ActiveWorkoutPage() {
         </div>
       </div>
 
-      {/* Video / camera area */}
-      <div className="relative h-[52%] min-h-[300px]">
-        {cameraActive ? (
+      {/* Main area */}
+      {cameraActive ? (
+        <div className="flex-1 relative">
           <CameraView
             active={cameraActive}
             analyzer={analyzer}
             onRepComplete={handleRepComplete}
-            onCue={() => {}}                 /* disabled — LLM owns cues now */
+            onCue={() => {}}
             onFramingLost={handleFramingLost}
             onCoachResult={handleCoachResult}
             exerciseName={currentExercise?.name || null}
@@ -444,54 +544,47 @@ export default function ActiveWorkoutPage() {
             coachEnabled
             showDebug={showDebug}
           />
-        ) : (
-          <VideoPlayer className="h-full rounded-none" />
-        )}
-
-        {!analyzer && cameraActive && !cueText && (
-          <div className="absolute bottom-3 left-3 right-3 flex justify-center pointer-events-none z-10">
-            <div className="bg-background/80 backdrop-blur-md border border-hairline rounded-pill px-3 py-1.5 text-[11px] text-muted">
-              AI coach is watching — manual log for unsupported exercises
+          {!analyzer && !cueText && (
+            <div className="absolute bottom-3 left-3 right-3 flex justify-center pointer-events-none z-10">
+              <div className="bg-background/80 backdrop-blur-md border border-hairline rounded-pill px-3 py-1.5 text-[11px] text-muted">
+                AI coach is watching — tap Complete when done
+              </div>
             </div>
-          </div>
-        )}
-      </div>
-
-      {/* Progress dots */}
-      <div className="flex justify-center gap-1.5 py-3.5">
-        {exercises.map((_, i) => (
-          <div key={i} className={`h-1.5 rounded-full ${i < currentExerciseIndex ? 'w-1.5 bg-accent' : i === currentExerciseIndex ? 'w-6 bg-accent' : 'w-1.5 bg-elevated'}`} />
-        ))}
-      </div>
-
-      {/* Exercise meta */}
-      <div className="px-6 flex-1">
-        <div className="kicker !text-accent">Exercise {currentExerciseIndex + 1} of {exercises.length}</div>
-        <h2 className="text-[28px] font-semibold tracking-tight mt-1.5 leading-tight">{currentExercise?.name}</h2>
-        <div className="flex gap-1.5 mt-2.5">
-          {currentExercise?.muscle && <Chip active>{currentExercise.muscle}</Chip>}
-          {currentExercise?.secondaryMuscles?.map((m) => <Chip key={m}>{m}</Chip>)}
+          )}
         </div>
+      ) : (
+        /* Manual perform mode — no camera */
+        <div className="flex-1 flex flex-col items-center justify-center px-6">
+          <div className="text-[11px] text-muted tracking-wider mb-1">SET {setNumber} OF {setsForCurrent}</div>
+          <h2 className="text-lg font-semibold tracking-tight text-center">{currentExercise?.name}</h2>
+          <div className="text-sm text-muted mt-1 font-mono">{currentExercise?.weight} kg</div>
 
-        <div className="mt-[18px] p-4 bg-surface border border-hairline rounded-[14px] flex justify-between items-center">
-          <div>
-            <div className="text-[11px] text-muted tracking-wider">SET {setNumber} OF {setsForCurrent}</div>
-            <div className="font-mono tabular-nums text-[26px] font-semibold mt-1">{currentExercise?.reps} reps · {currentExercise?.weight} kg</div>
-          </div>
-          <div className="text-right">
-            <div className="text-[10px] text-muted tracking-wider">LAST TIME</div>
-            <div className="font-mono text-[13px] text-dim mt-1">{setsForCurrent}×{currentExercise?.reps} @ {(currentExercise?.weight || 0) - 2.5} kg</div>
+          {/* Manual rep counter */}
+          <div className="flex items-center gap-8 mt-10">
+            <button
+              onClick={() => setLiveRepCount((c) => Math.max(0, c - 1))}
+              className="w-14 h-14 rounded-full bg-surface border border-hairline flex items-center justify-center active:bg-elevated transition-colors"
+            >
+              <Minus size={20} className="text-muted" />
+            </button>
+            <div className="text-center min-w-[100px]">
+              <div className="font-mono tabular-nums text-[64px] font-bold leading-none">{liveRepCount}</div>
+              <div className="text-sm text-muted mt-2">of {targetReps} reps</div>
+            </div>
+            <button
+              onClick={() => { repTick(); setLiveRepCount((c) => c + 1); }}
+              className="w-14 h-14 rounded-full bg-accent/10 border border-accent/30 flex items-center justify-center active:bg-accent/20 transition-colors"
+            >
+              <Plus size={20} className="text-accent" />
+            </button>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* CTAs */}
-      <div className="p-6 flex gap-2.5">
-        <Button variant="secondary" size="lg" className="flex-1" onClick={() => setCameraActive((v) => !v)} disabled={isEnding}>
-          {cameraActive ? <><CameraOff size={16} /> Hide camera</> : <><Camera size={16} /> Start camera</>}
-        </Button>
-        <Button variant="primary" size="lg" className="flex-[1.4]" onClick={handleManualLog} disabled={isEnding}>
-          Log set
+      {/* Complete set */}
+      <div className="p-6">
+        <Button variant="primary" size="lg" fullWidth onClick={handleCompleteSet} disabled={isEnding}>
+          Complete set
         </Button>
       </div>
     </div>

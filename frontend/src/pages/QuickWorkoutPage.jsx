@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Zap, Clock, Dumbbell } from 'lucide-react';
+import { ChevronLeft, Zap, Clock, Dumbbell, Search, Check } from 'lucide-react';
 import Button from '../components/common/Button';
 import Card from '../components/common/Card';
 import Chip from '../components/common/Chip';
 import { MUSCLE_GROUPS, SESSION_LENGTHS, EQUIPMENT_OPTIONS } from '../utils/constants';
 import { mockExercises } from '../utils/mockData';
+import { getExercises } from '../services/exerciseService';
 import useWorkoutStore from '../store/workoutStore';
 
 // Group 1 owns real /api/plans/quick generation. Until that ships, build the
@@ -43,13 +44,50 @@ export default function QuickWorkoutPage() {
   const [selectedMuscles, setSelectedMuscles] = useState([]);
   const [selectedDuration, setSelectedDuration] = useState('30 min');
   const [selectedEquipment, setSelectedEquipment] = useState('full-gym');
+  const [selectedExercises, setSelectedExercises] = useState([]);
+  const [exerciseSearch, setExerciseSearch] = useState('');
+  const [allExercises, setAllExercises] = useState([]);
   const { beginWorkout, isStarting } = useWorkoutStore();
+
+  useEffect(() => {
+    getExercises().then(({ data }) => setAllExercises(data));
+  }, []);
 
   const toggleMuscle = (muscle) => {
     setSelectedMuscles((prev) =>
       prev.includes(muscle) ? prev.filter((m) => m !== muscle) : [...prev, muscle]
     );
   };
+
+  const toggleExercise = (id) => {
+    setSelectedExercises((prev) =>
+      prev.includes(id) ? prev.filter((e) => e !== id) : [...prev, id]
+    );
+  };
+
+  const EQUIPMENT_FILTER = {
+    home_none: ['Bodyweight'],
+    home_basic: ['Bodyweight', 'Dumbbell', 'Band', 'Kettlebell'],
+    full_gym: null,
+  };
+
+  const filteredExercises = useMemo(() => {
+    let list = allExercises;
+    if (selectedMuscles.length) {
+      list = list.filter((e) =>
+        selectedMuscles.some((m) => e.muscle?.toLowerCase().includes(m.toLowerCase()))
+      );
+    }
+    const allowedEquipment = EQUIPMENT_FILTER[selectedEquipment];
+    if (allowedEquipment) {
+      list = list.filter((e) => allowedEquipment.includes(e.equipment));
+    }
+    if (exerciseSearch.trim()) {
+      const q = exerciseSearch.toLowerCase();
+      list = list.filter((e) => e.name.toLowerCase().includes(q));
+    }
+    return list.slice(0, 50);
+  }, [allExercises, selectedMuscles, selectedEquipment, exerciseSearch]);
 
   const startTemplate = async (template) => {
     const exercises = template.exerciseIds
@@ -69,13 +107,18 @@ export default function QuickWorkoutPage() {
   };
 
   const startCustom = async () => {
-    // Pick exercises whose primary muscle matches user selection;
-    // fall back to a balanced set if nothing matches.
-    let exercises = mockExercises.filter((e) =>
-      selectedMuscles.some((m) => e.muscle?.toLowerCase().includes(m.toLowerCase()))
-    );
-    if (!exercises.length) exercises = mockExercises.slice(0, 5);
-    exercises = exercises.slice(0, 6);
+    let exercises;
+    if (selectedExercises.length) {
+      exercises = selectedExercises
+        .map((id) => allExercises.find((e) => e.id === id))
+        .filter(Boolean);
+    } else {
+      exercises = allExercises.filter((e) =>
+        selectedMuscles.some((m) => e.muscle?.toLowerCase().includes(m.toLowerCase()))
+      );
+      if (!exercises.length) exercises = allExercises.slice(0, 5);
+      exercises = exercises.slice(0, 6);
+    }
 
     try {
       const sessionId = await beginWorkout({
@@ -148,7 +191,7 @@ export default function QuickWorkoutPage() {
           </div>
         </div>
 
-        <div className="mb-5">
+        <div className="mb-4">
           <label className="text-xs text-muted mb-2 block">Equipment</label>
           <div className="flex flex-wrap gap-1.5">
             {EQUIPMENT_OPTIONS.map((eq) => (
@@ -156,6 +199,49 @@ export default function QuickWorkoutPage() {
                 {eq.label}
               </Chip>
             ))}
+          </div>
+        </div>
+
+        <div className="mb-5">
+          <label className="text-xs text-muted mb-2 block">
+            Exercises{selectedExercises.length > 0 && ` (${selectedExercises.length} selected)`}
+          </label>
+          <div className="relative mb-2.5">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+            <input
+              type="text"
+              placeholder="Search exercises…"
+              value={exerciseSearch}
+              onChange={(e) => setExerciseSearch(e.target.value)}
+              className="w-full h-9 pl-8 pr-3 rounded-[10px] bg-elevated border border-hairline text-xs text-primary placeholder:text-muted focus:outline-none focus:border-accent/40 transition-colors"
+            />
+          </div>
+          <div className="max-h-[200px] overflow-y-auto rounded-xl bg-elevated border border-hairline divide-y divide-hairline">
+            {filteredExercises.map((ex) => {
+              const isSelected = selectedExercises.includes(ex.id);
+              return (
+                <button
+                  key={ex.id}
+                  onClick={() => toggleExercise(ex.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-surface ${
+                    isSelected ? 'bg-accent/5' : ''
+                  }`}
+                >
+                  <div className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
+                    isSelected ? 'bg-accent border-accent' : 'border-hairline'
+                  }`}>
+                    {isSelected && <Check size={12} className="text-bg" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-medium truncate">{ex.name}</div>
+                    <div className="text-[11px] text-muted">{ex.muscle} · {ex.equipment}</div>
+                  </div>
+                </button>
+              );
+            })}
+            {filteredExercises.length === 0 && (
+              <div className="px-3 py-4 text-xs text-muted text-center">No exercises found</div>
+            )}
           </div>
         </div>
       </div>
