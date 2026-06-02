@@ -11,8 +11,11 @@ import ScheduleSelector from '../components/onboarding/ScheduleSelector';
 import InjurySelector from '../components/onboarding/InjurySelector';
 import StyleSelector from '../components/onboarding/StyleSelector';
 import Button from '../components/common/Button';
-import Loader from '../components/common/Loader';
+import SquatLoader from '../components/common/SquatLoader';
+import LinearProgress from '../components/common/LinearProgress';
 import { saveOnboarding } from '../services/userService';
+import { generatePlan } from '../services/planService';
+import useAuthStore from '../store/authStore';
 
 const TOTAL_STEPS = 7;
 
@@ -88,10 +91,22 @@ export default function OnboardingPage() {
     } else {
       setGenerating(true);
       try {
-        await saveOnboarding(buildPayload());
-        setTimeout(() => navigate('/dashboard'), 3500);
+        const payload = buildPayload();
+        await saveOnboarding(payload);
+        await useAuthStore.getState().refreshUser();
+        await generatePlan({
+          goal: data.goal,
+          level: data.experience,
+          daysPerWeek: data.schedule.daysPerWeek,
+          sessionLength: parseInt(data.schedule.sessionLength) || 45,
+          equipment: data.equipment,
+          priorityMuscles: [],
+          injuries: data.injuries.join(', ') || 'None',
+          workoutStyles: data.styles,
+        });
+        navigate('/plan');
       } catch (err) {
-        console.error('Onboarding save failed:', err);
+        console.error('Onboarding/plan generation failed:', err);
         const detail = err.response?.data?.detail;
         if (Array.isArray(detail) && detail.length > 0) {
           setError(detail[0].msg);
@@ -196,15 +211,13 @@ function GeneratingScreen() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-8 gap-7">
-      <Loader size={100} />
+      <SquatLoader size={120} />
       <div className="text-center">
         <div className="kicker !text-accent">Generating</div>
         <div className="text-[22px] font-semibold mt-2.5 tracking-tight">{messages[messageIndex]}</div>
       </div>
       <div className="w-full max-w-[280px]">
-        <div className="h-1 bg-elevated rounded-full overflow-hidden">
-          <motion.div className="h-full bg-accent rounded-full" animate={{ width: `${progress}%` }} />
-        </div>
+        <LinearProgress />
         <div className="flex justify-between mt-2.5 text-dim text-[11px] font-mono">
           <span>Step {Math.min(Math.ceil(progress / 20), 5)} of 5</span>
           <span>{Math.round(progress)}%</span>

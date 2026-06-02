@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from functools import lru_cache
 from pathlib import Path
 
 
@@ -6,14 +7,14 @@ class Settings(BaseSettings):
     # ──── Database ────
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5433/repflow"
 
+    # ──── Groq AI ────
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+
     # ──── Auth ────
-    # SECRET_KEY signs JWTs. Generate a strong one for production:
-    #   python -c "import secrets; print(secrets.token_urlsafe(64))"
     SECRET_KEY: str = "dev-secret-change-in-production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
-
-    # Legacy alias — keep so older imports don't break.
     JWT_SECRET: str = "dev-secret-change-in-production"
 
     # ──── Gmail SMTP (for OTP / verification emails) ────
@@ -40,4 +41,9 @@ class Settings(BaseSettings):
     }
 
 
-settings = Settings()
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
+
+
+settings = get_settings()

@@ -5,6 +5,7 @@ import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import RepFlowLogo from '../components/common/RepFlowLogo';
 import GoogleSignInButton from '../components/common/GoogleSignInButton';
+import MiniSpinner from '../components/common/MiniSpinner';
 import useAuthStore from '../store/authStore';
 
 export default function SignupPage() {
@@ -33,7 +34,6 @@ export default function SignupPage() {
       password: form.password,
     });
     if (result.ok) {
-      // OTP sent — go to the verify-email screen.
       navigate('/verify-email');
     } else {
       setError(result.error);
@@ -41,22 +41,22 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+    <div className="min-h-screen bg-background flex items-center justify-center px-5 py-10 sm:p-6 overflow-x-hidden">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm">
-        <div className="flex items-center mb-12">
+        <div className="flex items-center mb-10 sm:mb-12">
           <RepFlowLogo height={24} />
         </div>
-        <h1 className="text-[32px] font-semibold tracking-tight">Create your account</h1>
+        <h1 className="text-[28px] sm:text-[32px] font-semibold tracking-tight">Create your account</h1>
         <p className="text-muted text-sm mt-2">Start training smarter in under a minute.</p>
 
-        <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-3.5">
+        <form onSubmit={handleSubmit} className="mt-7 sm:mt-8 flex flex-col gap-3.5">
           <Input label="Full name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Jash Patel" />
           <Input label="Email" type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="jash@example.com" />
           <Input label="Password" type="password" required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
           <Input label="Confirm password" type="password" required value={form.confirmPassword} onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })} />
           {error && <p className="text-[13px] text-bad" role="alert">{error}</p>}
           <Button type="submit" variant="primary" size="lg" fullWidth className="mt-3" disabled={isLoading}>
-            {isLoading ? 'Sending code…' : 'Create account'}
+            {isLoading ? <><MiniSpinner variant="ring" size={14} color="#0A0B0D" /> Sending code…</> : 'Create account'}
           </Button>
         </form>
 

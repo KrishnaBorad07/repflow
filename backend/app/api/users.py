@@ -77,6 +77,20 @@ async def update_preferences(
     db: AsyncSession = Depends(get_db),
 ):
     """Update workout preferences — equipment, styles, muscles, schedule, etc."""
+    if data.goal is not None:
+        user.goal = data.goal
+    if data.experience_level is not None:
+        user.experience_level = data.experience_level
+    if data.age is not None:
+        user.age = data.age
+    if data.height_cm is not None:
+        user.height_cm = data.height_cm
+    if data.weight_kg is not None:
+        user.weight_kg = data.weight_kg
+    if data.body_fat_pct is not None:
+        user.body_fat_pct = data.body_fat_pct
+    if data.injuries is not None:
+        user.injuries = data.injuries
     if data.equipment_inventory is not None:
         user.equipment_inventory = data.equipment_inventory
     if data.preferred_styles is not None:

@@ -254,6 +254,7 @@ async def google_auth(data: GoogleAuthRequest, db: AsyncSession = Depends(get_db
             data.id_token,
             google_requests.Request(),
             settings.GOOGLE_CLIENT_ID,
+            clock_skew_in_seconds=60,
         )
     except ValueError as exc:
         logger.warning("Google id_token verification failed: %s", exc)

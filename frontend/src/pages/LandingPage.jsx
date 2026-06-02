@@ -1,14 +1,17 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronRight, PlayCircle, CalendarDays, Camera, TrendingUp, Sparkles } from 'lucide-react';
+import { ChevronRight, PlayCircle, CalendarDays, Camera, TrendingUp, Sparkles, Menu, X } from 'lucide-react';
+import { useState } from 'react';
 import Button from '../components/common/Button';
 import RepFlowLogo from '../components/common/RepFlowLogo';
 
 export default function LandingPage() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
-    <div className="min-h-screen bg-background text-text font-sans">
+    <div className="min-h-screen bg-background text-text font-sans overflow-x-hidden">
       {/* Nav */}
-      <nav className="h-[72px] px-6 lg:px-14 flex items-center justify-between border-b border-hairline-2">
+      <nav className="h-[72px] px-5 sm:px-6 lg:px-14 flex items-center justify-between border-b border-hairline-2 relative">
         <div className="flex items-center">
           <RepFlowLogo height={24} />
         </div>
@@ -17,31 +20,49 @@ export default function LandingPage() {
           <span className="hover:text-text cursor-pointer">How it works</span>
           <span className="hover:text-text cursor-pointer">Pricing</span>
         </div>
-        <div className="flex gap-2.5">
+        {/* Desktop nav buttons */}
+        <div className="hidden sm:flex gap-2.5">
           <Link to="/login"><Button variant="ghost" size="md">Log in</Button></Link>
           <Link to="/signup"><Button variant="primary" size="md">Get started</Button></Link>
         </div>
+        {/* Mobile hamburger */}
+        <button className="sm:hidden w-9 h-9 flex items-center justify-center" onClick={() => setMenuOpen(!menuOpen)}>
+          {menuOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
       </nav>
 
+      {/* Mobile menu */}
+      {menuOpen && (
+        <div className="sm:hidden px-5 py-4 border-b border-hairline-2 bg-surface flex flex-col gap-3">
+          <span className="text-sm text-muted py-2">Features</span>
+          <span className="text-sm text-muted py-2">How it works</span>
+          <span className="text-sm text-muted py-2">Pricing</span>
+          <div className="flex gap-2.5 pt-2">
+            <Link to="/login" className="flex-1"><Button variant="ghost" size="md" fullWidth>Log in</Button></Link>
+            <Link to="/signup" className="flex-1"><Button variant="primary" size="md" fullWidth>Get started</Button></Link>
+          </div>
+        </div>
+      )}
+
       {/* Hero */}
-      <section className="px-6 lg:px-14 py-16 lg:py-[88px] grid lg:grid-cols-2 gap-12 lg:gap-16 max-w-[1280px] mx-auto">
+      <section className="px-5 sm:px-6 lg:px-14 py-12 sm:py-16 lg:py-[88px] grid lg:grid-cols-2 gap-12 lg:gap-16 max-w-[1280px] mx-auto">
         <div>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-pill border border-hairline bg-surface text-xs text-accent">
             <span className="w-1.5 h-1.5 rounded-full bg-accent" />
             Real-time form coaching, now in beta
           </motion.div>
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mt-6 text-5xl sm:text-6xl lg:text-[84px] font-semibold leading-[0.96] tracking-tighter">
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mt-6 text-[40px] sm:text-5xl md:text-6xl lg:text-[84px] font-semibold leading-[0.96] tracking-tighter">
             Train smarter.<br />
             <span className="text-accent">Lift sharper.</span>
           </motion.h1>
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-lg lg:text-[19px] leading-relaxed text-muted max-w-[480px] mt-5">
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-base sm:text-lg lg:text-[19px] leading-relaxed text-muted max-w-[480px] mt-5">
             RepFlow is your AI training partner. Personalized plans, real-time form feedback through your camera, and a coach in your pocket — all in one.
           </motion.p>
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex gap-3 mt-9">
-            <Link to="/signup"><Button variant="primary" size="lg">Get started — free <ChevronRight size={16} strokeWidth={2} /></Button></Link>
-            <Button variant="secondary" size="lg"><PlayCircle size={16} /> Watch demo</Button>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex flex-col sm:flex-row gap-3 mt-8 sm:mt-9">
+            <Link to="/signup"><Button variant="primary" size="lg" fullWidth className="sm:w-auto">Get started — free <ChevronRight size={16} strokeWidth={2} /></Button></Link>
+            <Button variant="secondary" size="lg" fullWidth className="sm:w-auto"><PlayCircle size={16} /> Watch demo</Button>
           </motion.div>
-          <div className="flex gap-7 mt-14">
+          <div className="flex gap-6 sm:gap-7 mt-10 sm:mt-14">
             <HeroStat value="42,118" label="Active members" />
             <HeroStat value="1.2M" label="Workouts logged" />
             <HeroStat value="8.4 / 10" label="Avg form score" />
@@ -51,10 +72,10 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section className="px-6 lg:px-14 pb-24 max-w-[1280px] mx-auto">
+      <section className="px-5 sm:px-6 lg:px-14 pb-16 sm:pb-24 max-w-[1280px] mx-auto">
         <div className="kicker">Built for serious training</div>
-        <h2 className="text-3xl lg:text-[44px] font-semibold tracking-tight mt-3 mb-12 max-w-[720px]">Four ways RepFlow makes every rep count.</h2>
-        <div className="grid sm:grid-cols-2 gap-4">
+        <h2 className="text-2xl sm:text-3xl lg:text-[44px] font-semibold tracking-tight mt-3 mb-8 sm:mb-12 max-w-[720px]">Four ways RepFlow makes every rep count.</h2>
+        <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
           <FeatureCard n="01" title="Adaptive AI plans" body="Plans rebuild themselves around your goals, equipment, recovery, and what's actually working." Icon={CalendarDays} />
           <FeatureCard n="02" title="Real-time form coaching" body="Pose tracking through your camera flags depth, tempo, and bar path — set by set, rep by rep." Icon={Camera} />
           <FeatureCard n="03" title="Honest progress tracking" body="No vanity metrics. Volume, intensity, form quality, and what's actually improving." Icon={TrendingUp} />
@@ -63,11 +84,11 @@ export default function LandingPage() {
       </section>
 
       {/* How it works */}
-      <section className="px-6 lg:px-14 py-24 border-y border-hairline-2 bg-[#0F1115]">
+      <section className="px-5 sm:px-6 lg:px-14 py-16 sm:py-24 border-y border-hairline-2 bg-[#0F1115]">
         <div className="max-w-[1280px] mx-auto">
           <div className="kicker">How it works</div>
-          <h2 className="text-3xl lg:text-[44px] font-semibold tracking-tight mt-3 mb-12">Up and running in three steps.</h2>
-          <div className="grid sm:grid-cols-3 gap-6">
+          <h2 className="text-2xl sm:text-3xl lg:text-[44px] font-semibold tracking-tight mt-3 mb-8 sm:mb-12">Up and running in three steps.</h2>
+          <div className="grid sm:grid-cols-3 gap-4 sm:gap-6">
             <StepCard n="1" title="Tell us about you" body="A 90-second quiz. Goal, experience, equipment, schedule, anything we should avoid." />
             <StepCard n="2" title="Get your plan" body="An adaptive 8-week plan tailored to your week. Swap anything, regenerate anytime." />
             <StepCard n="3" title="Train with feedback" body="Open camera, follow the demo, lift. RepFlow counts reps and corrects form live." />
@@ -76,13 +97,13 @@ export default function LandingPage() {
       </section>
 
       {/* Stats */}
-      <section className="px-6 lg:px-14 py-24 max-w-[1280px] mx-auto">
-        <div className="grid sm:grid-cols-3 gap-12 pb-16 border-b border-hairline-2">
+      <section className="px-5 sm:px-6 lg:px-14 py-16 sm:py-24 max-w-[1280px] mx-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 sm:gap-12 pb-12 sm:pb-16 border-b border-hairline-2">
           <BigStat value="2,100+" label="Exercises in library" />
           <BigStat value="98.4%" label="Rep detection accuracy" />
-          <BigStat value="12 min" label="Avg time to plan" />
+          <BigStat value="12 min" label="Avg time to plan" className="col-span-2 sm:col-span-1" />
         </div>
-        <div className="grid sm:grid-cols-3 gap-4 mt-12">
+        <div className="grid sm:grid-cols-3 gap-3 sm:gap-4 mt-8 sm:mt-12">
           <QuoteCard name="Maya R." meta="Powerlifter · 3 yr" body="The form feedback caught a hip shift I'd had for years. My squat finally feels symmetrical." />
           <QuoteCard name="Devon L." meta="Beginner · 4 mo" body="It's the first app that doesn't make me feel dumb. Plans actually fit my schedule." />
           <QuoteCard name="Priya S." meta="Hybrid athlete" body="Asked the coach why my deadlift stalled. It pointed at sleep and bumped my volume down. Worked." />
@@ -90,14 +111,14 @@ export default function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section className="px-6 lg:px-14 pb-24 max-w-[1280px] mx-auto">
-        <div className="bg-accent text-accent-ink rounded-3xl p-10 lg:p-16 flex flex-col lg:flex-row items-center justify-between gap-8">
+      <section className="px-5 sm:px-6 lg:px-14 pb-16 sm:pb-24 max-w-[1280px] mx-auto">
+        <div className="bg-accent text-accent-ink rounded-2xl sm:rounded-3xl p-8 sm:p-10 lg:p-16 flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-8 text-center lg:text-left">
           <div>
-            <h2 className="text-3xl lg:text-5xl font-semibold tracking-tight leading-none">Start your fitness journey today.</h2>
-            <p className="mt-3.5 text-[17px] opacity-75 max-w-[560px]">It's free to start. No credit card. Cancel anytime.</p>
+            <h2 className="text-2xl sm:text-3xl lg:text-5xl font-semibold tracking-tight leading-none">Start your fitness journey today.</h2>
+            <p className="mt-3 sm:mt-3.5 text-[15px] sm:text-[17px] opacity-75 max-w-[560px]">It's free to start. No credit card. Cancel anytime.</p>
           </div>
-          <Link to="/signup">
-            <button className="h-14 px-7 rounded-xl bg-background text-accent font-semibold text-base flex items-center gap-2.5 shrink-0">
+          <Link to="/signup" className="w-full sm:w-auto">
+            <button className="h-14 w-full sm:w-auto px-7 rounded-xl bg-background text-accent font-semibold text-base flex items-center justify-center gap-2.5 shrink-0">
               Sign up — free <ChevronRight size={18} strokeWidth={2} />
             </button>
           </Link>
@@ -105,12 +126,12 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="px-6 lg:px-14 py-10 border-t border-hairline-2 flex flex-col sm:flex-row justify-between items-center gap-4 text-[13px] text-dim max-w-[1280px] mx-auto">
+      <footer className="px-5 sm:px-6 lg:px-14 py-8 sm:py-10 border-t border-hairline-2 flex flex-col sm:flex-row justify-between items-center gap-4 text-[13px] text-dim max-w-[1280px] mx-auto">
         <div className="flex items-center gap-3">
           <RepFlowLogo height={18} />
           <span className="text-muted">· Made by Jash</span>
         </div>
-        <div className="flex gap-7">
+        <div className="flex gap-5 sm:gap-7">
           <span className="hover:text-text cursor-pointer">About</span>
           <span className="hover:text-text cursor-pointer">Privacy</span>
           <span className="hover:text-text cursor-pointer">Terms</span>
@@ -124,8 +145,8 @@ export default function LandingPage() {
 function HeroStat({ value, label }) {
   return (
     <div>
-      <div className="font-mono tabular-nums text-[22px] font-semibold tracking-tight">{value}</div>
-      <div className="text-xs text-muted mt-1">{label}</div>
+      <div className="font-mono tabular-nums text-lg sm:text-[22px] font-semibold tracking-tight">{value}</div>
+      <div className="text-[11px] sm:text-xs text-muted mt-1">{label}</div>
     </div>
   );
 }
@@ -182,15 +203,15 @@ function SkeletonOverlay() {
 
 function FeatureCard({ n, title, body, Icon }) {
   return (
-    <div className="card p-7 min-h-[200px] flex flex-col justify-between">
+    <div className="card p-5 sm:p-7 min-h-[180px] sm:min-h-[200px] flex flex-col justify-between">
       <div className="flex justify-between items-start">
-        <div className="w-11 h-11 rounded-xl bg-accent/10 border border-accent/25 flex items-center justify-center">
+        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-accent/10 border border-accent/25 flex items-center justify-center">
           <Icon size={20} className="text-accent" />
         </div>
         <span className="font-mono text-xs text-dim">{n}</span>
       </div>
       <div className="mt-auto">
-        <div className="text-[22px] font-semibold tracking-tight mb-2">{title}</div>
+        <div className="text-lg sm:text-[22px] font-semibold tracking-tight mb-2">{title}</div>
         <div className="text-sm text-muted leading-relaxed max-w-[440px]">{body}</div>
       </div>
     </div>
@@ -199,28 +220,28 @@ function FeatureCard({ n, title, body, Icon }) {
 
 function StepCard({ n, title, body }) {
   return (
-    <div className="card p-7">
-      <div className="font-mono text-[56px] font-semibold text-accent leading-none tracking-tighter">{n}</div>
-      <div className="text-xl font-semibold mt-[18px] tracking-tight">{title}</div>
+    <div className="card p-5 sm:p-7">
+      <div className="font-mono text-[40px] sm:text-[56px] font-semibold text-accent leading-none tracking-tighter">{n}</div>
+      <div className="text-lg sm:text-xl font-semibold mt-3 sm:mt-[18px] tracking-tight">{title}</div>
       <div className="text-sm text-muted mt-2 leading-relaxed">{body}</div>
     </div>
   );
 }
 
-function BigStat({ value, label }) {
+function BigStat({ value, label, className = '' }) {
   return (
-    <div>
-      <div className="font-mono tabular-nums text-5xl lg:text-[64px] font-semibold tracking-tighter leading-none">{value}</div>
-      <div className="mt-3 text-sm text-muted">{label}</div>
+    <div className={className}>
+      <div className="font-mono tabular-nums text-3xl sm:text-5xl lg:text-[64px] font-semibold tracking-tighter leading-none">{value}</div>
+      <div className="mt-2 sm:mt-3 text-sm text-muted">{label}</div>
     </div>
   );
 }
 
 function QuoteCard({ name, meta, body }) {
   return (
-    <div className="card p-6">
+    <div className="card p-5 sm:p-6">
       <div className="text-[15px] leading-relaxed">"{body}"</div>
-      <div className="mt-[18px] flex items-center gap-2.5">
+      <div className="mt-4 sm:mt-[18px] flex items-center gap-2.5">
         <div className="w-8 h-8 rounded-full bg-elevated border border-hairline" />
         <div>
           <div className="text-[13px] font-semibold">{name}</div>

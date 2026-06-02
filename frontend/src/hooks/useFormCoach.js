@@ -30,10 +30,13 @@ export default function useFormCoach({
   const inFlightRef = useRef(false);
   const captureCanvasRef = useRef(null);
   const onResultRef = useRef(onResult);
+  // Only block a rep after 2 consecutive bad verdicts — single bad frames are too noisy.
+  const consecutiveBadRef = useRef(0);
 
   useEffect(() => { onResultRef.current = onResult; }, [onResult]);
 
   useEffect(() => {
+    consecutiveBadRef.current = 0;
     if (!enabled || !exerciseName) return undefined;
 
     const captureFrame = async () => {
@@ -90,9 +93,21 @@ export default function useFormCoach({
           metrics_history: metricsHistoryRef?.current ?? null,
           recent_cues: recentCuesRef?.current ?? null,
         });
-        setLastResult(result);
+        // Debounce rep rejection: require 2 consecutive bad verdicts before blocking a rep.
+        // A single blurry or misread frame should not reject a good rep.
+        const adjustedResult = { ...result };
+        if (result.should_count_rep === false) {
+          consecutiveBadRef.current += 1;
+          if (consecutiveBadRef.current < 2) {
+            adjustedResult.should_count_rep = true;
+          }
+        } else {
+          consecutiveBadRef.current = 0;
+        }
+
+        setLastResult(adjustedResult);
         setError(null);
-        if (onResultRef.current) onResultRef.current(result);
+        if (onResultRef.current) onResultRef.current(adjustedResult);
       } catch (err) {
         console.warn('Form coach call failed:', err);
         setError(err?.message || 'Form coach unavailable');

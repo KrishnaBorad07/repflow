@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Button from '../components/common/Button';
+import RepFlowLogo from '../components/common/RepFlowLogo';
+import MiniSpinner from '../components/common/MiniSpinner';
 import useAuthStore from '../store/authStore';
 
 /**
@@ -88,17 +90,13 @@ export default function VerifyEmailPage() {
   if (!pendingEmail) return null;
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+    <div className="min-h-screen bg-background flex items-center justify-center px-5 py-10 sm:p-6 overflow-x-hidden">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm">
-        <div className="flex items-center gap-2.5 mb-12">
-          <svg width={26} height={26} viewBox="0 0 24 24" fill="none">
-            <path d="M4 6 L12 3 L20 6 L20 12 C20 17 16 21 12 22 C8 21 4 17 4 12 Z" fill="#C8FF3D" />
-            <path d="M9 11l2.5 3 4-5" stroke="#0A0B0D" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-          </svg>
-          <span className="text-[17px] font-semibold">RepFlow</span>
+        <div className="flex items-center mb-10 sm:mb-12">
+          <RepFlowLogo height={24} />
         </div>
 
-        <h1 className="text-[32px] font-semibold tracking-tight">Check your email</h1>
+        <h1 className="text-[28px] sm:text-[32px] font-semibold tracking-tight">Check your email</h1>
         <p className="text-muted text-sm mt-2">
           We sent a 6-digit code to <span className="text-text font-medium">{pendingEmail}</span>.
         </p>
@@ -131,7 +129,7 @@ export default function VerifyEmailPage() {
           disabled={code.length !== 6 || isLoading}
           onClick={() => submit()}
         >
-          {isLoading ? 'Verifying…' : 'Verify'}
+          {isLoading ? <><MiniSpinner variant="ring" size={14} color="#0A0B0D" /> Verifying…</> : 'Verify'}
         </Button>
 
         <p className="text-center text-[13px] text-muted mt-6">
