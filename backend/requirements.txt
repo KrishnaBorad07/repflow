@@ -16,3 +16,4 @@ openai>=1.30.0
 aiosmtplib==3.0.1
 google-auth==2.34.0
 requests==2.32.3
+openai==1.40.0

@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     OTP_EXPIRY_MINUTES: int = 10
     OTP_MAX_ATTEMPTS: int = 5
 
+    # ──── OpenAI (form coach) ────
+    OPENAI_API_KEY: str = ""
+
     model_config = {
         "env_file": Path(__file__).resolve().parents[2] / ".env",
         "extra": "ignore",

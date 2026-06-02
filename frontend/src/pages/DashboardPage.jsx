@@ -26,7 +26,6 @@ export default function DashboardPage() {
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const greeting = today.getHours() < 12 ? 'Good morning' : today.getHours() < 17 ? 'Good afternoon' : 'Good evening';
 
-  // Calculate real stats from plan
   const totalExercises = currentPlan?.days?.reduce((sum, d) => sum + (d.exerciseCount || 0), 0) || 0;
   const workoutDays = currentPlan?.days?.filter((d) => d.exerciseCount > 0) || [];
   const completedDays = currentPlan?.days?.filter((d) => d.status === 'done') || [];

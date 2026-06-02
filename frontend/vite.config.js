@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig({
   plugins: [
@@ -24,6 +25,15 @@ export default defineConfig({
       },
     }),
   ],
+  resolve: {
+    alias: {
+      // @tensorflow-models/pose-detection statically imports `Pose` from
+      // @mediapipe/pose for BlazePose. The mediapipe package is a global
+      // script with no named ESM exports, so the import errors at runtime.
+      // We only ship MoveNet, so redirect the dependency to a local stub.
+      '@mediapipe/pose': fileURLToPath(new URL('./shims/mediapipe-pose.js', import.meta.url)),
+    },
+  },
   server: {
     proxy: {
       '/api': {
