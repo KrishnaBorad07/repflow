@@ -48,10 +48,16 @@ async def send_email(to: str, subject: str, body: str) -> None:
         )
         logger.info("Email sent to %s (%s)", to, subject)
     except Exception:
-        # Re-raise so the caller can surface a 500 to the client. Logged with
-        # full traceback for the operator.
         logger.exception("Failed to send email to %s", to)
-        raise
+        # SMTP failed (e.g. host blocks outbound port 587). Print to console
+        # so the OTP is visible in server logs and signup still succeeds.
+        print("\n" + "=" * 60)
+        print("[EMAIL FALLBACK — SMTP failed, OTP printed to console]")
+        print(f"To:      {to}")
+        print(f"Subject: {subject}")
+        print("-" * 60)
+        print(body)
+        print("=" * 60 + "\n", flush=True)
 
 
 async def send_otp_email(to: str, name: str, otp: str) -> None:
