@@ -8,6 +8,7 @@ from app.models.base import Base
 from app.models import Exercise, WorkoutPlan, PlanDay, PlanDayExercise, WorkoutSession, SetLog, PendingSignup, User
 from app.seeds.exercises import seed_exercises
 from app.api import auth, cv, plans, users, workouts
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -36,16 +37,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+_origins = [o.strip() for o in settings.ALLOWED_ORIGINS.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "http://localhost:5175",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:5174",
-        "http://127.0.0.1:5175",
-    ],
+    allow_origins=_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

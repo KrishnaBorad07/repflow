@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     # ──── Frontend (for links inside emails) ────
     FRONTEND_URL: str = "http://localhost:5173"
 
+    # ──── CORS (comma-separated list of allowed origins) ────
+    ALLOWED_ORIGINS: str = "http://localhost:5173,http://localhost:5174,http://localhost:5175,http://127.0.0.1:5173,http://127.0.0.1:5174,http://127.0.0.1:5175"
+
     # ──── OTP behavior ────
     OTP_EXPIRY_MINUTES: int = 10
     OTP_MAX_ATTEMPTS: int = 5
